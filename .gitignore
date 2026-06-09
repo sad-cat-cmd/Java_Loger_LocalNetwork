@@ -1,0 +1,134 @@
+# Java & Maven (основное)
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+
+# NetBeans специфичное
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+nbactions.xml
+nb-configuration.xml
+*.swp
+*~
+*.lock
+# Файлы пользовательских настроек NetBeans
+private/
+*.netbeans_*
+# Папка с локальными пропертями
+config/
+
+# SQLite база данных
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+# Резервные копии БД
+*.db.backup
+*.db.bak
+# Логи самой БД
+*.log
+
+# Логи приложения (не коммитим реальные логи)
+logs/
+*.log
+*.log.gz
+*.log.zip
+# Логи самого сервера если пишет в файл
+application.log
+server.log
+error.log
+
+# Конфигурация окружения (секреты, порты, токены)
+*.properties.local
+*.properties.dev
+*.properties.prod
+application-dev.properties
+application-prod.properties
+# Файлы с паролями, токенами
+*.secret
+*.key
+*.pem
+*.p12
+config.yml
+config.yaml
+
+# IDE файлы (безопасность на будущее)
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+*.code-workspace
+
+# OS специфичные файлы
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Временные файлы сборки
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+# Исключаем shadowJar, но можно коммитить если это дистрибутив
+!target/*-shaded.jar
+!target/*-with-dependencies.jar
+
+# Документация и тестовые данныx
+/api-docs/
+/swagger-ui/
+# Тестовые данные (но не сами тесты)
+test-data/
+sample-logs/
+# Покрытие кода
+coverage/
+.jacoco/
+
+# Специфичное для проекта
+# Игнорируем дампы запросов если пишете в файл
+http-requests/
+requests.log
+# Игнорируем данные от клиентов если сохраняете примеры
+client-examples/generated/
+# Игнорируем метрики и профайлинг
+metrics/
+profiling/
+*.hprof
+
+# Docker (для потенциальной контейнеризации)
+.dockerignore
+docker-compose.override.yml
+*.container
+.containerenv
+
+# Скрипты окружения
+*.env
+*.env.local
+*.env.*.local
+secrets/
+credentials/
