@@ -16,12 +16,18 @@ import org.junit.jupiter.api.Test;
  * 
  * <p>Проверяет валидацию полей, корректность создания объектов
  * и обработку исключительных ситуаций.</p>
+ * 
+ * <p>Версия 2.0: Обновлена для работы с параметром maxLengthLog в конструкторе.</p>
+ * 
+ * @author admin_
+ * @version 2.0
  */
 class DataLogTest {
     
     private static final String VALID_MESSAGE = "Test log message";
     private static final String VALID_STATUS = "INFO";
-    private static final String LONG_MESSAGE = "A".repeat(201);
+    private static final int DEFAULT_MAX_LENGTH = 200;
+    private static final int CUSTOM_MAX_LENGTH = 100;
     
     @BeforeEach
     void setUp() {
@@ -34,22 +40,33 @@ class DataLogTest {
     @DisplayName("Should create DataLog with valid parameters")
     void testCreateDataLogWithValidParameters() {
         assertDoesNotThrow(() -> {
-            DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS);
+            DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
             assertNotNull(log);
         });
     }
     
     @Test
+    @DisplayName("Should create DataLog with custom max length")
+    void testCreateDataLogWithCustomMaxLength() throws ExceptionDataLog {
+        String message80 = "A".repeat(80);
+        DataLog log = new DataLog(message80, VALID_STATUS, CUSTOM_MAX_LENGTH);
+        
+        assertNotNull(log);
+        assertEquals(message80, log.getLogInfo());
+        assertEquals(VALID_STATUS, log.getStatus());
+    }
+    
+    @Test
     @DisplayName("Should return correct message")
     void testGetLogInfo() throws ExceptionDataLog {
-        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
         assertEquals(VALID_MESSAGE, log.getLogInfo());
     }
     
     @Test
     @DisplayName("Should return correct status")
     void testGetStatus() throws ExceptionDataLog {
-        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
         assertEquals(VALID_STATUS, log.getStatus());
     }
     
@@ -57,7 +74,7 @@ class DataLogTest {
     @DisplayName("Should set timestamp automatically")
     void testTimeLogIsSet() throws ExceptionDataLog {
         LocalDateTime before = LocalDateTime.now();
-        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
         LocalDateTime after = LocalDateTime.now();
         
         LocalDateTime logTime = log.getTimeLogAsObject();
@@ -70,7 +87,7 @@ class DataLogTest {
     @Test
     @DisplayName("Should return formatted string")
     void testToString() throws ExceptionDataLog {
-        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
         String toString = log.toString();
         
         assertTrue(toString.contains(VALID_STATUS));
@@ -88,7 +105,7 @@ class DataLogTest {
         
         for (String status : validStatuses) {
             assertDoesNotThrow(() -> {
-                DataLog log = new DataLog(VALID_MESSAGE, status);
+                DataLog log = new DataLog(VALID_MESSAGE, status, DEFAULT_MAX_LENGTH);
                 assertEquals(status, log.getStatus());
             });
         }
@@ -97,45 +114,85 @@ class DataLogTest {
     @Test
     @DisplayName("Should reject invalid status")
     void testRejectInvalidStatus() {
-        String[] invalidStatuses = {"INVALID", "ERROR", "LOG", "", " ", null};
+        String[] invalidStatuses = {"INVALID", "ERROR", "LOG", "", " "};
         
         for (String status : invalidStatuses) {
             assertThrows(ExceptionDataLog.class, () -> {
-                new DataLog(VALID_MESSAGE, status);
+                new DataLog(VALID_MESSAGE, status, DEFAULT_MAX_LENGTH);
             });
         }
+    }
+    
+    @Test
+    @DisplayName("Should reject null status")
+    void testRejectNullStatus() {
+        assertThrows(ExceptionDataLog.class, () -> {
+            new DataLog(VALID_MESSAGE, null, DEFAULT_MAX_LENGTH);
+        });
     }
     
     // ==================== Валидация длины сообщения ====================
     
     @Test
-    @DisplayName("Should accept message of exactly 200 characters")
+    @DisplayName("Should accept message of exactly max length (200)")
     void testExactMaxLength() throws ExceptionDataLog {
         String message200 = "A".repeat(200);
         assertDoesNotThrow(() -> {
-            DataLog log = new DataLog(message200, VALID_STATUS);
+            DataLog log = new DataLog(message200, VALID_STATUS, DEFAULT_MAX_LENGTH);
             assertEquals(message200, log.getLogInfo());
         });
     }
     
     @Test
-    @DisplayName("Should reject message longer than 200 characters")
-    void testRejectLongMessage() {
+    @DisplayName("Should accept message of exactly custom max length (100)")
+    void testExactCustomMaxLength() throws ExceptionDataLog {
+        String message100 = "A".repeat(100);
+        assertDoesNotThrow(() -> {
+            DataLog log = new DataLog(message100, VALID_STATUS, CUSTOM_MAX_LENGTH);
+            assertEquals(message100, log.getLogInfo());
+        });
+    }
+    
+    @Test
+    @DisplayName("Should reject message longer than default max length (200)")
+    void testRejectLongMessageDefault() {
         String longMessage = "A".repeat(201);
         
         ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
-            new DataLog(longMessage, VALID_STATUS);
+            new DataLog(longMessage, VALID_STATUS, DEFAULT_MAX_LENGTH);
         });
         
-        assertTrue(exception.getCombinedLogMsg().contains("length info > 200"));
+        String errorMsg = exception.getCombinedLogMsg();
+        assertTrue(errorMsg.contains("length info > 200"));
+    }
+    
+    @Test
+    @DisplayName("Should reject message longer than custom max length (100)")
+    void testRejectLongMessageCustom() {
+        String longMessage = "A".repeat(101);
+        
+        ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
+            new DataLog(longMessage, VALID_STATUS, CUSTOM_MAX_LENGTH);
+        });
+        
+        String errorMsg = exception.getCombinedLogMsg();
+        assertTrue(errorMsg.contains("length info > 100"));
     }
     
     @Test
     @DisplayName("Should accept empty message")
     void testEmptyMessage() throws ExceptionDataLog {
         assertDoesNotThrow(() -> {
-            DataLog log = new DataLog("", VALID_STATUS);
+            DataLog log = new DataLog("", VALID_STATUS, DEFAULT_MAX_LENGTH);
             assertEquals("", log.getLogInfo());
+        });
+    }
+    
+    @Test
+    @DisplayName("Should reject null message")
+    void testNullMessage() {
+        assertThrows(ExceptionDataLog.class, () -> {
+            new DataLog(null, VALID_STATUS, DEFAULT_MAX_LENGTH);
         });
     }
     
@@ -148,11 +205,26 @@ class DataLogTest {
         String invalidStatus = "INVALID";
         
         ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
-            new DataLog(longMessage, invalidStatus);
+            new DataLog(longMessage, invalidStatus, DEFAULT_MAX_LENGTH);
         });
         
         String errorMsg = exception.getCombinedLogMsg();
         assertTrue(errorMsg.contains("length info > 200"));
+        assertTrue(errorMsg.contains("Status has been not correctness"));
+    }
+    
+    @Test
+    @DisplayName("Should report error when message exceeds custom max length and status invalid")
+    void testBothFieldsInvalidWithCustomMaxLength() {
+        String longMessage = "A".repeat(101);
+        String invalidStatus = "INVALID";
+        
+        ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
+            new DataLog(longMessage, invalidStatus, CUSTOM_MAX_LENGTH);
+        });
+        
+        String errorMsg = exception.getCombinedLogMsg();
+        assertTrue(errorMsg.contains("length info > 100"));
         assertTrue(errorMsg.contains("Status has been not correctness"));
     }
     
@@ -162,7 +234,7 @@ class DataLogTest {
     @DisplayName("Exception should contain correct HTTP code")
     void testExceptionHttpCode() {
         ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
-            new DataLog("Test", "INVALID");
+            new DataLog("Test", "INVALID", DEFAULT_MAX_LENGTH);
         });
         
         assertEquals(400, exception.getClientCode());
@@ -172,7 +244,7 @@ class DataLogTest {
     @DisplayName("Exception should contain client message")
     void testExceptionClientMessage() {
         ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
-            new DataLog("Test", "INVALID");
+            new DataLog("Test", "INVALID", DEFAULT_MAX_LENGTH);
         });
         
         assertNotNull(exception.getClientMsg());
@@ -182,7 +254,7 @@ class DataLogTest {
     @DisplayName("Exception should have stack trace")
     void testExceptionStackTrace() {
         ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
-            new DataLog("Test", "INVALID");
+            new DataLog("Test", "INVALID", DEFAULT_MAX_LENGTH);
         });
         
         String combinedMsg = exception.getCombinedLogMsg();
@@ -194,19 +266,19 @@ class DataLogTest {
     @DisplayName("Exception should have timestamp")
     void testExceptionTimestamp() {
         ExceptionDataLog exception = assertThrows(ExceptionDataLog.class, () -> {
-            new DataLog("Test", "INVALID");
+            new DataLog("Test", "INVALID", DEFAULT_MAX_LENGTH);
         });
         
         assertNotNull(exception.getTimeErr());
     }
     
-    // ==================== Граничные случаи случаи ====================
+    // ==================== Граничные случаи ====================
     
     @Test
     @DisplayName("Should handle special characters in message")
     void testSpecialCharacters() throws ExceptionDataLog {
         String specialMsg = "!@#$%^&*()_+{}|:<>?~`";
-        DataLog log = new DataLog(specialMsg, VALID_STATUS);
+        DataLog log = new DataLog(specialMsg, VALID_STATUS, DEFAULT_MAX_LENGTH);
         
         assertEquals(specialMsg, log.getLogInfo());
     }
@@ -215,7 +287,7 @@ class DataLogTest {
     @DisplayName("Should handle unicode characters")
     void testUnicodeCharacters() throws ExceptionDataLog {
         String unicodeMsg = "Привет мир! こんにちは 🌍";
-        DataLog log = new DataLog(unicodeMsg, VALID_STATUS);
+        DataLog log = new DataLog(unicodeMsg, VALID_STATUS, DEFAULT_MAX_LENGTH);
         
         assertEquals(unicodeMsg, log.getLogInfo());
     }
@@ -224,8 +296,27 @@ class DataLogTest {
     @DisplayName("Should preserve exact message content")
     void testMessagePreservation() throws ExceptionDataLog {
         String originalMsg = "User 'admin' logged in at 2024-01-01";
-        DataLog log = new DataLog(originalMsg, VALID_STATUS);
+        DataLog log = new DataLog(originalMsg, VALID_STATUS, DEFAULT_MAX_LENGTH);
         
         assertEquals(originalMsg, log.getLogInfo());
+    }
+    
+    @Test
+    @DisplayName("Should handle zero max length")
+    void testZeroMaxLength() {
+        assertThrows(ExceptionDataLog.class, () -> {
+            new DataLog("Any message", VALID_STATUS, 0);
+        });
+    }
+    
+    @Test
+    @DisplayName("Should handle negative max length")
+    void testNegativeMaxLength() throws ExceptionDataLog {
+        // Отрицательный maxLengthLog - невалидное значение, но конструктор не проверяет
+        // Любое сообщение будет длиннее отрицательного числа
+        String message = "Test";
+        assertThrows(ExceptionDataLog.class, () -> {
+            new DataLog(message, VALID_STATUS, -1);
+        });
     }
 }

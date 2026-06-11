@@ -15,17 +15,19 @@ import java.time.LocalDateTime;
  * <h2>Пример использования:</h2>
  * <pre>
  * try {
- *     DataLog log = new DataLog("User logged in", "INFO");
+ *     DataLog log = new DataLog("User logged in", "INFO", 300);
  *     System.out.println(log.getLogInfo());
  * } catch (ExceptionDataLog e) {
+ *     e.addProgramUnitInTheStackTrace("NameMethod()")
  *     System.err.println("Validation failed: " + e.getCombindLogMsg());
  * }
  * </pre>
  * 
  * <h2>Правила валидации:</h2>
  * <ul>
- *   <li>Длина сообщения не должна превышать 200 символов</li>
+ *   <li>Длина сообщения не должна превышать параметра maxLengthLog, котороые вы передаете в конструктор</li>
  *   <li>Статус должен быть одним из: FATAL, INFO, WARN, DEBUG, TRACE</li>
+ *   <li>
  * </ul>
  * 
  * @author admin_
@@ -38,8 +40,7 @@ public class DataLog {
     private static final String[] CORRECTNESS_STATUSES = {"FATAL", "INFO", "WARN", "DEBUG", "TRACE"};
     
     /** Максимальная длина сообщения лога */
-    private static final int MAX_LOG_LENGTH = 200;
-    
+    private final int maxLengthLog;
     /** Текст сообщения лога */
     private final String strLogInfo;
     
@@ -54,7 +55,7 @@ public class DataLog {
      * 
      * <p>Выполняет следующие проверки:</p>
      * <ul>
-     *   <li>Длина сообщения не превышает {@value #MAX_LOG_LENGTH} символов</li>
+     *   <li>Длина сообщения не превышает параметра maxLengthLog, задающего максимальное количество символов</li>
      *   <li>Статус присутствует в списке допустимых значений</li>
      * </ul>
      * 
@@ -67,8 +68,8 @@ public class DataLog {
         
         if (strLogInfo == null) {
             errInfo = "log info is null";
-        } else if (strLogInfo.length() > MAX_LOG_LENGTH) {
-            errInfo = "length info > " + MAX_LOG_LENGTH;
+        } else if (strLogInfo.length() > maxLengthLog) {
+            errInfo = "length info > " + maxLengthLog;
         }
         
         if (strStatus == null) {
@@ -134,15 +135,18 @@ public class DataLog {
     /**
      * Создает новый объект лога с автоматической установкой времени.
      * 
-     * @param info  текст сообщения лога (не должен превышать 200 символов)
+     * @param info  текст сообщения лога (не должен превышать параметра maxLengthLog, задающего максимальное количество символов в логе)
      * @param status статус лога (должен быть из списка допустимых)
+     * @param maxLengthLog максимальная длина сообщения лога
      * @throws ExceptionDataLog если валидация не пройдена
      */
-    public DataLog(String info, String status) throws ExceptionDataLog {
+    public DataLog(String info,
+                   String status,
+                   int maxLengthLog) throws ExceptionDataLog {
         this.strLogInfo = info;
         this.strStatus = status;
         this.timeLog = LocalDateTime.now();
-        
+        this.maxLengthLog = maxLengthLog;
         try {
             verificationInputMsgStrings();
         } catch (ExceptionDataLog exc) {

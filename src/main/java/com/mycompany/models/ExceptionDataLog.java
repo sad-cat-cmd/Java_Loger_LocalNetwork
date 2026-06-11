@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * <h2>Пример использования:</h2>
  * <pre>
  * try {
- *     // какая-то операция
+ *     com.mycompany.models.DataLog.DataLog("STATUS", "INFO_LOG", MAX_SIZE)
  * } catch (ExceptionDataLog e) {
  *     e.addProgramUnitInTheStackTrace("MyClass.myMethod()");
  *     sendResponse(e.getClientCode(), e.getClientMsg());
@@ -54,7 +54,7 @@ public class ExceptionDataLog extends Exception {
     private final LocalDateTime timeErr;
     
     /**
-     * Добавляет单元 в трассировку стека.
+     * Добавляет String programUnit в трассировку стека.
      * 
      * <p>Позволяет отслеживать путь прохождения ошибки через различные
      * уровни приложения.</p>
