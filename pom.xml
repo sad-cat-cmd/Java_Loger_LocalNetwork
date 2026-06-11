@@ -102,6 +102,5 @@
                 </executions>
             </plugin>
         </plugins>
-        <sourceDirectory>src/main</sourceDirectory>
     </build>
 </project>
