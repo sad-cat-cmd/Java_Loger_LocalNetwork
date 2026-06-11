@@ -1,0 +1,13 @@
+{
+    "database": {
+        "path": "data/logs.db"
+    },
+    "server": {
+        "http_port": 8080,
+        "tcp_port": 9090,
+        "max_threads": 50
+    },
+    "logging": {
+        "max_log_length": 200
+    }
+}
