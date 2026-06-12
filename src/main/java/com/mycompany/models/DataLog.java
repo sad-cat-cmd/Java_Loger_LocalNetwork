@@ -55,7 +55,11 @@ public class DataLog {
      * 
      * <p>Выполняет следующие проверки:</p>
      * <ul>
+     *   <li>Сообщение не является null</li>
+     *   <li>Сообщение не является empty</li>
      *   <li>Длина сообщения не превышает параметра maxLengthLog, задающего максимальное количество символов</li>
+     *   <li>Статус не является null</li>
+     *   <li>Статус не является empty</li>
      *   <li>Статус присутствует в списке допустимых значений</li>
      * </ul>
      * 
@@ -68,12 +72,19 @@ public class DataLog {
         
         if (strLogInfo == null) {
             errInfo = "log info is null";
+        } else if (strLogInfo.isEmpty()){
+            errInfo = "log info is empty";
         } else if (strLogInfo.length() > maxLengthLog) {
             errInfo = "length info > " + maxLengthLog;
         }
         
-        if (strStatus == null) {
-            errStatus = "strStatus is null";
+        if (strStatus == null || strStatus.isEmpty()) {
+            if (strStatus == null){
+                errStatus = "strStatus is null";
+            }
+            else {
+                errStatus = "strStaus is empty";
+            }
         } else {
             for (String validStatus : CORRECTNESS_STATUSES) {
                 if (strStatus.equals(validStatus)) {
@@ -96,6 +107,8 @@ public class DataLog {
         }
     }
     
+    // ========== Геттеры ==========
+
     /**
      * Возвращает текст сообщения лога.
      * 
@@ -132,9 +145,11 @@ public class DataLog {
         return timeLog;
     }
     
+    // ========== Конструкторы ==========
+
     /**
-     * Создает новый объект лога с автоматической установкой времени.
-     * 
+     * Конструктор для создания НОВОГО объекта лога с автоматической установкой времени.
+     * <p>Выполняет валидацию входных данных. При успешном создании лог получает временную метку</p>
      * @param info  текст сообщения лога (не должен превышать параметра maxLengthLog, задающего максимальное количество символов в логе)
      * @param status статус лога (должен быть из списка допустимых)
      * @param maxLengthLog максимальная длина сообщения лога
@@ -154,14 +169,12 @@ public class DataLog {
             throw exc;
         }
     }
-    
-    /**
-     * Возвращает строковое представление объекта лога.
-     * 
-     * @return форматированная строка лога [время] статус: сообщение
-     */
-    @Override
-    public String toString() {
-        return String.format("[%s] %s: %s", timeLog, strStatus, strLogInfo);
+    public DataLog(String info,
+                    String status,
+                    LocalDateTime timeLog) {
+        this.strLogInfo = info;
+        this.strStatus = status;
+        this.timeLog = timeLog;
+        this.maxLengthLog = 0;
     }
 }
