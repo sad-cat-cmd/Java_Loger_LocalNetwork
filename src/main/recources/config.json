@@ -8,6 +8,8 @@
         "max_threads": 50
     },
     "logging": {
-        "max_log_length": 200
+        "max_log_length": 200,
+        "max_name_process_length" : 50,
+        "max_owner_process_length" : 50
     }
 }

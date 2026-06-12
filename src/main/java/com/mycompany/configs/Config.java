@@ -19,6 +19,8 @@ import com.google.gson.JsonSyntaxException;
  *   <li>Порты для HTTP и TCP серверов</li>
  *   <li>Максимальную длину сообщения лога</li>
  *   <li>Максимальное количество потоков сервера</li>
+ *   <li>Максимальное имя процесса логирования</li>
+ *   <li>Максимальное имя владельца процесса логирования</li>
  * </ul>
  * </p>
  * 
@@ -34,7 +36,9 @@ import com.google.gson.JsonSyntaxException;
  *         "max_threads": 50
  *     },
  *     "logging": {
- *         "max_log_length": 200
+ *         "max_log_length": 200,
+ *         "max_name_process_length" : 50,
+           "max_owner_process_length" : 50
  *     }
  * }
  * </pre>
@@ -74,6 +78,12 @@ public class Config {
     /** Максимальное количество потоков */
     private int maxThread;
 
+    /** Максимальная длина имени процесса */
+    private int maxNameProcessLength;
+
+    /** Максимальная длиная владельца */
+    private int maxOwnerProcessLength;
+
     /**
      * Внутренний класс для десериализации JSON.
      * Структура должна точно соответствовать файлу конфигурации.
@@ -95,6 +105,8 @@ public class Config {
         
         static class LoggingConfig {
             int max_log_length;
+            int max_name_process_length;
+            int max_owner_process_length;
         }
     }
     
@@ -121,12 +133,20 @@ public class Config {
                 throw new ExceptionConfig("Missing logging configuration", "Config.readConfig()");
             }
 
+
             this.pathDBFile = configJson.database.path;
             this.httpPort = configJson.server.http_port;
             this.tcpPort = configJson.server.tcp_port;
             this.maxLogLength = configJson.logging.max_log_length;
             this.maxThread = configJson.server.max_threads;
-
+            this.maxNameProcessLength = configJson.logging.max_name_process_length;
+            this.maxOwnerProcessLength = configJson.logging.max_owner_process_length;
+            if (this.maxNameProcessLength <= 0) {
+                throw new ExceptionConfig("max_name_process_length must be positive", "Config.readConfig()");
+            }
+            if (this.maxOwnerProcessLength <= 0) {
+                throw new ExceptionConfig("max_owner_process_length must be positive", "Config.readConfig()");
+            }
         } catch (IOException excIO) {
             throw new ExceptionConfig("IO Error: " + excIO.getMessage(), "Config.readConfig()");
         } catch (JsonSyntaxException excJSE) {
@@ -194,6 +214,23 @@ public class Config {
         return maxLogLength;
     }
 
+    /**
+     * Возвращает максимальную длину имени процесса.
+     * 
+     * @return максимальная длина в символах
+     */
+    public int getMaxNameProcessLength() {
+        return maxNameProcessLength;
+    }
+
+    /**
+     * Возвращает максимальную длину имени хозяина процесса.
+     * 
+     * @return максимальная длина в символах
+     */
+    public int getMaxOwnerProcessLength() {
+        return maxOwnerProcessLength;
+    }
     /**
      * Возвращает максимальное количество потоков сервера.
      * 
