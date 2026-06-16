@@ -3,6 +3,7 @@ package com.mycompany.services;
 import java.util.List;
 
 import com.mycompany.models.DataLog;
+import com.mycompany.models.LogStatus;
 import com.mycompany.models.Process;
 
 /**
@@ -13,24 +14,39 @@ import com.mycompany.models.Process;
  *   <li>Добавление новых логов в систему</li>
  *   <li>Получение всех логов процесса</li>
  *   <li>Получение диапазона логов процесса</li>
+ *   <li>Получение всех логов с определенными статусами
+ *   <li>Получение всех логов, содержащие определенную подсторку
  * </ul>
  * </p>
  * 
  * <h2>Пример использования:</h2>
  * <pre>
  * try {
+ *     List <DataLog> allLogs;
+ *     List <DataLog> allLogsRange;
+ *     List <DataLog> allLogsWithSubstr;
+ *     List <DataLog> allLogsWithStatuses;
+ * 
  *     DataLogService logService = new DataLogServiceImpl(repository, maxLogLength);
  *     
  *     // Добавление лога
  *     DataLog newLog = new DataLog("User logged in", "INFO", 200);
  *     DataLog savedLog = logService.Add(newLog, "proc_123", "secure_code_456");
  *     
- *     // Получение всех логов процесса
+ *    
  *     Process process = processService.Search("proc_123");
- *     List&lt;DataLog&gt; allLogs = logService.GetAll(process);
+ *     // Получение всех логов процесса
+ *     allLogs = logService.GetALl(process.getID)
+ * 
+ *     // Получение диапазона логов
+ *     allLogsRange = logService.GetRange(0, 10);
  *     
- *     // Получение последних логов
- *     List&lt;DataLog&gt; recentLogs = logService.GetRange(process);
+ *     // Получение логов с определенными статусами
+ *     allLogsWithStatuses = logService.GetAllLogContainsSubstring();
+ * 
+ *     // Получение логов с вхождением определенной подстроки
+ *     allLogsWithSubstr = logService.GetAllLog
+ *      
  * } catch (ExceptionService e) {
  *     e.addProgramUnitInTheStackTrace("MyClass.myMethod()");
  *     System.err.println(e.getCombinedLogMsg());
@@ -56,32 +72,61 @@ public interface DataLogService {
      * </ul>
      * 
      * @param log        объект лога для добавления
-     * @param ProcessId  уникальный идентификатор процесса
+     * @param processID  уникальный идентификатор процесса
      * @param SecureCode секретный код для проверки прав доступа
      * @return сохраненный объект лога (с присвоенным ID)
      * @throws ExceptionService если произошла ошибка при добавлении лога
      */
-    DataLog Add(DataLog log, String ProcessId, String SecureCode) throws ExceptionService;
+    DataLog Add(DataLog log,
+                String processID,
+                String SecureCode) throws ExceptionService;
     
     /**
      * Возвращает все логи указанного процесса.
      * 
      * <p>Логи возвращаются в хронологическом порядке (от старых к новым).</p>
      * 
-     * @param IdProcess объект процесса, для которого запрашиваются логи
+     * @param processID id процесса, для которого запрашиваются логи
      * @return список всех логов процесса
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    List<DataLog> GetAll(Process IdProcess) throws ExceptionService;
+    List<DataLog> GetAll(Process processID) throws ExceptionService;
     
     /**
      * Возвращает диапазон логов указанного процесса.
      * 
      * <p>Используется для пагинации и получения последних записей.</p>
      * 
-     * @param IdProcess объект процесса, для которого запрашиваются логи
+     * @param processID id процесса, к которому запрашиваются логи
      * @return список логов процесса в указанном диапазоне
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    List<DataLog> GetRange(Process IdProcess) throws ExceptionService;
+    List<DataLog> GetRange(String processID,
+                           int indexStart,
+                           int indexEnd) throws ExceptionService;
+
+    /**
+     * Возвращает все логи процесса, имеющие заданные статусы.
+     * 
+     * <p>Используется для пагинации и получения последних записей.</p>
+     * 
+     * @param processID id процесса, к которому запрашиваются логи
+     * @return список логов процесса в указанном диапазоне
+     * @throws ExceptionService если процесс не найден или произошла ошибка БД
+     */
+    List<DataLog> GetAllLogContainsStatuses(String processID,
+                                            List<LogStatus> statuses) throws ExceptionService;
+    
+    /**
+     * Возвращает все логи процесса, содержащие подтроку.
+     * 
+     * <p>Используется для пагинации и получения последних записей.</p>
+     * 
+     * @param processID id процесса, к которому запрашиваются логи
+     * @return список логов процесса в указанном диапазоне
+     * @throws ExceptionService если процесс не найден или произошла ошибка БД
+     */
+    List<DataLog> GetAllLogContainsSubstring(String processID,
+                                             String subString) throws ExceptionService;
+    
 }
