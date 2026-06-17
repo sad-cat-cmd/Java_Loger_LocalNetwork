@@ -22,17 +22,17 @@ import com.mycompany.models.Process;
  *     
  *     // Регистрация нового процесса
  *     Process newProcess = new Process("billing-service", "admin@company.com", 100, 50);
- *     Process savedProcess = processService.Add(newProcess);
+ *     Process savedProcess = processService.add(newProcess);
  *     
  *     // Поиск процесса по ID
- *     Process found = processService.Search("proc_123");
+ *     Process found = processService.search("proc_123");
  *     
  *     // Получение всех активных процессов
- *     List&lt;Process&gt; activeProcesses = processService.GetAllActive();
+ *     List&lt;Process&gt; activeProcesses = processService.getAllActive();
  *     
  *     // Редактирование процесса
  *     savedProcess.setStatusFinished();
- *     Process updated = processService.EditProcess(savedProcess);
+ *     Process updated = processService.editProcess(savedProcess);
  * } catch (ExceptionService e) {
  *     e.addProgramUnitInTheStackTrace("MyClass.myMethod()");
  *     System.err.println(e.getCombinedLogMsg());
@@ -55,7 +55,7 @@ public interface ProcessService {
      * @return сохраненный объект процесса (с присвоенным ID)
      * @throws ExceptionService если валидация не пройдена или произошла ошибка БД
      */
-    Process Add(Process process) throws ExceptionService;
+    Process add(Process process) throws ExceptionService;
     
     /**
      * Возвращает список всех зарегистрированных процессов.
@@ -63,7 +63,7 @@ public interface ProcessService {
      * @return список всех процессов (включая завершенные)
      * @throws ExceptionService если произошла ошибка при чтении из БД
      */
-    List<Process> GetAll() throws ExceptionService;
+    List<Process> getAll() throws ExceptionService;
     
     /**
      * Возвращает список только активных процессов.
@@ -73,7 +73,7 @@ public interface ProcessService {
      * @return список активных процессов
      * @throws ExceptionService если произошла ошибка при чтении из БД
      */
-    List<Process> GetAllActive() throws ExceptionService;
+    List<Process> getAllActive() throws ExceptionService;
     
     /**
      * Выполняет поиск процесса по уникальному идентификатору.
@@ -82,7 +82,7 @@ public interface ProcessService {
      * @return найденный процесс
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    Process Search(String id) throws ExceptionService;
+    Process search(String id) throws ExceptionService;
     
     /**
      * Обновляет информацию о процессе.
@@ -93,5 +93,5 @@ public interface ProcessService {
      * @return обновленный объект процесса
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    Process EditProcess(Process newProcess) throws ExceptionService;
+    Process editProcess(Process newProcess) throws ExceptionService;
 }

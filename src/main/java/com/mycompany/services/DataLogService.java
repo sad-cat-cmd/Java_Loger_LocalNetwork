@@ -34,18 +34,18 @@ import com.mycompany.models.Process;
  *     DataLog savedLog = logService.Add(newLog, "proc_123", "secure_code_456");
  *     
  *    
- *     Process process = processService.Search("proc_123");
+ *     Process process = processService.search("proc_123");
  *     // Получение всех логов процесса
- *     allLogs = logService.GetALl(process.getID)
+ *     allLogs = logService.getALl(process.getID)
  * 
  *     // Получение диапазона логов
- *     allLogsRange = logService.GetRange(0, 10);
+ *     allLogsRange = logService.getRange(0, 10);
  *     
  *     // Получение логов с определенными статусами
- *     allLogsWithStatuses = logService.GetAllLogContainsSubstring();
+ *     allLogsWithStatuses = logService.getAllLogContainsSubstring();
  * 
  *     // Получение логов с вхождением определенной подстроки
- *     allLogsWithSubstr = logService.GetAllLog
+ *     allLogsWithSubstr = logService.getAll();
  *      
  * } catch (ExceptionService e) {
  *     e.addProgramUnitInTheStackTrace("MyClass.myMethod()");
@@ -77,7 +77,7 @@ public interface DataLogService {
      * @return сохраненный объект лога (с присвоенным ID)
      * @throws ExceptionService если произошла ошибка при добавлении лога
      */
-    DataLog Add(DataLog log,
+    DataLog add(DataLog log,
                 String processID,
                 String SecureCode) throws ExceptionService;
     
@@ -90,7 +90,7 @@ public interface DataLogService {
      * @return список всех логов процесса
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    List<DataLog> GetAll(Process processID) throws ExceptionService;
+    List<DataLog> getAll(Process processID) throws ExceptionService;
     
     /**
      * Возвращает диапазон логов указанного процесса.
@@ -101,7 +101,7 @@ public interface DataLogService {
      * @return список логов процесса в указанном диапазоне
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    List<DataLog> GetRange(String processID,
+    List<DataLog> getRange(String processID,
                            int indexStart,
                            int indexEnd) throws ExceptionService;
 
@@ -114,7 +114,7 @@ public interface DataLogService {
      * @return список логов процесса в указанном диапазоне
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    List<DataLog> GetAllLogContainsStatuses(String processID,
+    List<DataLog> getAllLogContainsStatuses(String processID,
                                             List<LogStatus> statuses) throws ExceptionService;
     
     /**
@@ -126,7 +126,7 @@ public interface DataLogService {
      * @return список логов процесса в указанном диапазоне
      * @throws ExceptionService если процесс не найден или произошла ошибка БД
      */
-    List<DataLog> GetAllLogContainsSubstring(String processID,
+    List<DataLog> getAllLogContainsSubstring(String processID,
                                              String subString) throws ExceptionService;
     
 }

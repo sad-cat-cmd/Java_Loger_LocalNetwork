@@ -28,23 +28,23 @@ import com.mycompany.services.ExceptionService;
  *     );
  *     
  *     // Регистрация нового процесса
- *     Process process = facade.AddProcess(new Process("billing", "admin", 100, 50));
+ *     Process process = facade.addProcess(new Process("billing", "admin", 100, 50));
  *     String processId = process.getID();
  *     String secureCode = process.getUniqueCode();
  *     
  *     // Добавление лога
  *     DataLog log = new DataLog("User logged in", LogStatus.INFO, 200);
- *     DataLog savedLog = facade.AddDataLog(processId, log, secureCode);
+ *     DataLog savedLog = facade.addDataLog(processId, log, secureCode);
  *     
  *     // Получение всех логов процесса
- *     List&lt;DataLog&gt; allLogs = facade.GetAllLog(processId);
+ *     List&lt;DataLog&gt; allLogs = facade.getAllLog(processId);
  *     
  *     // Получение только ошибок
  *     List&lt;LogStatus&gt; errorStatuses = Arrays.asList(LogStatus.FATAL);
- *     List&lt;DataLog&gt; errors = facade.GetAllLogContainsStatuses(processId, errorStatuses);
+ *     List&lt;DataLog&gt; errors = facade.getAllLogContainsStatuses(processId, errorStatuses);
  *     
  *     // Остановка процесса
- *     Process stopped = facade.StopProcess(processId, secureCode);
+ *     Process stopped = facade.stopProcess(processId, secureCode);
  *     
  * } catch (ExceptionService e) {
  *     e.addProgramUnitInTheStackTrace("MyClass.myMethod()");
@@ -91,7 +91,7 @@ public interface LoggingFacadeService {
      *           <li>Ошибка при сохранении в БД</li>
      *         </ul>
      */
-    Process AddProcess(Process process) throws ExceptionService;
+    Process addProcess(Process process) throws ExceptionService;
     
     /**
      * Возвращает список всех зарегистрированных процессов.
@@ -101,7 +101,7 @@ public interface LoggingFacadeService {
      * @return список всех процессов
      * @throws ExceptionService если ошибка при чтении из БД
      */
-    List<Process> GetAllProcess() throws ExceptionService;
+    List<Process> getAllProcess() throws ExceptionService;
     
     /**
      * Возвращает список только активных процессов.
@@ -111,7 +111,7 @@ public interface LoggingFacadeService {
      * @return список активных процессов
      * @throws ExceptionService если ошибка при чтении из БД
      */
-    List<Process> GetAllActiveProcess() throws ExceptionService;
+    List<Process> getAllActiveProcess() throws ExceptionService;
     
     /**
      * Выполняет поиск процесса по уникальному идентификатору.
@@ -120,7 +120,7 @@ public interface LoggingFacadeService {
      * @return найденный процесс
      * @throws ExceptionService если процесс не найден
      */
-    Process SearchProcess(String processId) throws ExceptionService;
+    Process searchProcess(String processId) throws ExceptionService;
     
     /**
      * Останавливает процесс.
@@ -145,7 +145,7 @@ public interface LoggingFacadeService {
      *           <li>Ошибка при сохранении в БД</li>
      *         </ul>
      */
-    Process StopProcess(String processId, String uniqueCode) throws ExceptionService;
+    Process stopProcess(String processId, String uniqueCode) throws ExceptionService;
     
     // ==================== Управление логами ====================
     
@@ -175,7 +175,7 @@ public interface LoggingFacadeService {
      *           <li>Ошибка при сохранении в БД</li>
      *         </ul>
      */
-    DataLog AddDataLog(String processId,
+    DataLog addDataLog(String processId,
                        DataLog log,
                        String uniqueCode) throws ExceptionService;
     
@@ -192,7 +192,7 @@ public interface LoggingFacadeService {
      *           <li>Ошибка при чтении из БД</li>
      *         </ul>
      */
-    List<DataLog> GetAllLog(String processId) throws ExceptionService;
+    List<DataLog> getAllLog(String processId) throws ExceptionService;
     
     /**
      * Возвращает диапазон логов указанного процесса (для пагинации).
@@ -211,7 +211,7 @@ public interface LoggingFacadeService {
      *           <li>Ошибка при чтении из БД</li>
      *         </ul>
      */
-    List<DataLog> GetRangeLog(String processId,
+    List<DataLog> getRangeLog(String processId,
                               int indexStart,
                               int indexEnd) throws ExceptionService;
     
@@ -237,7 +237,7 @@ public interface LoggingFacadeService {
      *           <li>Ошибка при чтении из БД</li>
      *         </ul>
      */
-    List<DataLog> GetAllLogContainsStatuses(String processId,
+    List<DataLog> getAllLogContainsStatuses(String processId,
                                             List<LogStatus> statuses) throws ExceptionService;
     
     /**
@@ -261,6 +261,6 @@ public interface LoggingFacadeService {
      *           <li>Ошибка при чтении из БД</li>
      *         </ul>
      */
-    List<DataLog> GetAllLogContainsSubstring(String processId,
+    List<DataLog> getAllLogContainsSubstring(String processId,
                                              String substring) throws ExceptionService;
 }
