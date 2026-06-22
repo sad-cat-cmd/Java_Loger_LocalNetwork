@@ -5,7 +5,6 @@ import com.mycompany.models.LogStatus;
 
 import com.mycompany.models.LogStatus;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Утилитарный класс для построения динамических SQL запросов.
