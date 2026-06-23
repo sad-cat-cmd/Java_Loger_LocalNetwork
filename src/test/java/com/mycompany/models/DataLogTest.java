@@ -17,11 +17,11 @@ import org.junit.jupiter.api.Test;
  * <p>Проверяет валидацию полей, корректность создания объектов
  * и обработку исключительных ситуаций.</p>
  * 
- * <p>Версия 2.0: Обновлена для работы с параметром maxLengthLog в конструкторе
- * и добавлен конструктор для загрузки из БД.</p>
+ * <p>Версия 3.0: Добавлена поддержка порядкового номера лога (numberLog)
+ * и новый конструктор для загрузки из БД с номером.</p>
  * 
  * @author admin_
- * @version 2.0
+ * @version 3.0
  */
 class DataLogTest {
     
@@ -29,6 +29,7 @@ class DataLogTest {
     private static final String VALID_STATUS = "INFO";
     private static final int DEFAULT_MAX_LENGTH = 200;
     private static final int CUSTOM_MAX_LENGTH = 100;
+    private static final int TEST_NUMBER_LOG = 42;
     
     @BeforeEach
     void setUp() {
@@ -43,6 +44,7 @@ class DataLogTest {
         assertDoesNotThrow(() -> {
             DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
             assertNotNull(log);
+            assertEquals(0, log.getNumberLog()); // Новый лог имеет номер 0
         });
     }
     
@@ -55,19 +57,35 @@ class DataLogTest {
         assertNotNull(log);
         assertEquals(message80, log.getLogInfo());
         assertEquals(VALID_STATUS, log.getStatus());
+        assertEquals(0, log.getNumberLog());
     }
     
     @Test
-    @DisplayName("Should create DataLog from database data")
-    void testCreateDataLogFromDatabase() {
+    @DisplayName("Should create DataLog from database data without number")
+    void testCreateDataLogFromDatabaseWithoutNumber() {
         LocalDateTime fixedTime = LocalDateTime.of(2024, 1, 15, 10, 30, 45);
-        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, fixedTime);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, 0, fixedTime);
         
         assertNotNull(log);
         assertEquals(VALID_MESSAGE, log.getLogInfo());
         assertEquals(VALID_STATUS, log.getStatus());
         assertEquals(fixedTime.toString(), log.getTimeLog());
         assertEquals(fixedTime, log.getTimeLogAsObject());
+        assertEquals(0, log.getNumberLog());
+    }
+    
+    @Test
+    @DisplayName("Should create DataLog from database data with number")
+    void testCreateDataLogFromDatabaseWithNumber() {
+        LocalDateTime fixedTime = LocalDateTime.of(2024, 1, 15, 10, 30, 45);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, TEST_NUMBER_LOG, fixedTime);
+        
+        assertNotNull(log);
+        assertEquals(VALID_MESSAGE, log.getLogInfo());
+        assertEquals(VALID_STATUS, log.getStatus());
+        assertEquals(fixedTime.toString(), log.getTimeLog());
+        assertEquals(fixedTime, log.getTimeLogAsObject());
+        assertEquals(TEST_NUMBER_LOG, log.getNumberLog());
     }
     
     @Test
@@ -82,6 +100,14 @@ class DataLogTest {
     void testGetStatus() throws ExceptionDataLog {
         DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
         assertEquals(VALID_STATUS, log.getStatus());
+    }
+    
+    @Test
+    @DisplayName("Should return correct number log")
+    void testGetNumberLog() {
+        LocalDateTime fixedTime = LocalDateTime.now();
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, TEST_NUMBER_LOG, fixedTime);
+        assertEquals(TEST_NUMBER_LOG, log.getNumberLog());
     }
     
     @Test
@@ -102,8 +128,19 @@ class DataLogTest {
     @DisplayName("Should preserve timestamp from database constructor")
     void testTimestampPreservationFromDatabase() {
         LocalDateTime fixedTime = LocalDateTime.now().minusDays(5);
-        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, fixedTime);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, 0, fixedTime);
         
+        assertEquals(fixedTime, log.getTimeLogAsObject());
+        assertEquals(fixedTime.toString(), log.getTimeLog());
+    }
+    
+    @Test
+    @DisplayName("Should preserve number and timestamp from database constructor")
+    void testNumberAndTimestampPreservationFromDatabase() {
+        LocalDateTime fixedTime = LocalDateTime.now().minusDays(5);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, TEST_NUMBER_LOG, fixedTime);
+        
+        assertEquals(TEST_NUMBER_LOG, log.getNumberLog());
         assertEquals(fixedTime, log.getTimeLogAsObject());
         assertEquals(fixedTime.toString(), log.getTimeLog());
     }
@@ -398,42 +435,100 @@ class DataLogTest {
     @DisplayName("Database constructor should work with any status without validation")
     void testDatabaseConstructorWithInvalidStatus() {
         LocalDateTime time = LocalDateTime.now();
-        DataLog log = new DataLog(VALID_MESSAGE, "INVALID_STATUS", time);
+        // Конструктор: DataLog(info, status, numberLog, timeLog)
+        DataLog log = new DataLog(VALID_MESSAGE, "INVALID_STATUS", 0, time);
         
         assertEquals(VALID_MESSAGE, log.getLogInfo());
         assertEquals("INVALID_STATUS", log.getStatus());
         assertEquals(time, log.getTimeLogAsObject());
+        assertEquals(0, log.getNumberLog());
     }
     
     @Test
     @DisplayName("Database constructor should work with null values")
     void testDatabaseConstructorWithNulls() {
         LocalDateTime time = LocalDateTime.now();
-        DataLog log = new DataLog(null, null, time);
+        DataLog log = new DataLog(null, null, 0, time);
         
         assertEquals(null, log.getLogInfo());
         assertEquals(null, log.getStatus());
         assertEquals(time, log.getTimeLogAsObject());
+        assertEquals(0, log.getNumberLog());
     }
     
     @Test
     @DisplayName("Database constructor should work with empty strings")
     void testDatabaseConstructorWithEmptyStrings() {
         LocalDateTime time = LocalDateTime.now();
-        DataLog log = new DataLog("", "", time);
+        DataLog log = new DataLog("", "", 0, time);
         
         assertEquals("", log.getLogInfo());
         assertEquals("", log.getStatus());
         assertEquals(time, log.getTimeLogAsObject());
+        assertEquals(0, log.getNumberLog());
     }
     
     @Test
     @DisplayName("Database constructor should preserve exact timestamp")
     void testDatabaseConstructorPreservesExactTimestamp() {
         LocalDateTime exactTime = LocalDateTime.of(2023, 12, 25, 10, 30, 45, 123456789);
-        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, exactTime);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, 0, exactTime);
         
         assertEquals(exactTime, log.getTimeLogAsObject());
         assertEquals(exactTime.toString(), log.getTimeLog());
+        assertEquals(0, log.getNumberLog());
+    }
+    
+    @Test
+    @DisplayName("Database constructor with number should preserve all fields")
+    void testDatabaseConstructorWithNumberPreservesAllFields() {
+        LocalDateTime exactTime = LocalDateTime.of(2023, 12, 25, 10, 30, 45, 123456789);
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, TEST_NUMBER_LOG, exactTime);
+        
+        assertEquals(VALID_MESSAGE, log.getLogInfo());
+        assertEquals(VALID_STATUS, log.getStatus());
+        assertEquals(exactTime, log.getTimeLogAsObject());
+        assertEquals(exactTime.toString(), log.getTimeLog());
+        assertEquals(TEST_NUMBER_LOG, log.getNumberLog());
+    }
+    
+    // ==================== Сравнение конструкторов ====================
+    
+    @Test
+    @DisplayName("New constructor should validate, DB constructor should not")
+    void testConstructorValidationDifference() {
+        // Новый конструктор - валидация есть
+        assertThrows(ExceptionDataLog.class, () -> {
+            new DataLog("", "", DEFAULT_MAX_LENGTH);
+        });
+        
+        // DB конструктор - валидации нет (без number)
+        assertDoesNotThrow(() -> {
+            new DataLog("", "", 0, LocalDateTime.now());
+        });
+        
+        // DB конструктор - валидации нет (с number)
+        assertDoesNotThrow(() -> {
+            new DataLog("", "", TEST_NUMBER_LOG, LocalDateTime.now());
+        });
+    }
+    
+    @Test
+    @DisplayName("New constructor should set numberLog to 0")
+    void testNewConstructorSetsNumberLogToZero() throws ExceptionDataLog {
+        DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, DEFAULT_MAX_LENGTH);
+        assertEquals(0, log.getNumberLog());
+    }
+    
+    @Test
+    @DisplayName("Database constructor should allow any number")
+    void testDatabaseConstructorAllowsAnyNumber() {
+        LocalDateTime time = LocalDateTime.now();
+        int[] testNumbers = {0, 1, 100, 999, 1000, -1};
+        
+        for (int number : testNumbers) {
+            DataLog log = new DataLog(VALID_MESSAGE, VALID_STATUS, number, time);
+            assertEquals(number, log.getNumberLog());
+        }
     }
 }

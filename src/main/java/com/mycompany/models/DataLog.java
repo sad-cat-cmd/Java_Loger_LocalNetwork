@@ -35,7 +35,6 @@ import java.time.LocalDateTime;
  * @see ExceptionDataLog
  */
 public class DataLog {
-    
     /** Допустимые статусы логирования */
     private static final String[] CORRECTNESS_STATUSES = {"FATAL", "INFO", "WARN", "DEBUG", "TRACE"};
     
@@ -47,6 +46,9 @@ public class DataLog {
     /** Статус лога (FATAL, INFO, WARN, DEBUG, TRACE) */
     private final String strStatus;
     
+    /** Порядковый номер лога */ 
+    private final int numberLog;
+
     /** Временная метка создания лога */
     private final LocalDateTime timeLog;
     
@@ -119,6 +121,14 @@ public class DataLog {
     }
     
     /**
+     * Возвращает номер лога.
+     * 
+     * @return текст сообщения
+     */
+    public int getNumberLog() {
+        return numberLog;
+    }
+    /**
      * Возвращает статус лога.
      * 
      * @return статус (FATAL, INFO, WARN, DEBUG, TRACE)
@@ -158,6 +168,7 @@ public class DataLog {
     public DataLog(String info,
                    String status,
                    int maxLengthLog) throws ExceptionDataLog {
+        this.numberLog = 0;
         this.strLogInfo = info;
         this.strStatus = status;
         this.timeLog = LocalDateTime.now();
@@ -169,9 +180,19 @@ public class DataLog {
             throw exc;
         }
     }
+    /**
+     * Конструктор для получения объекта лога из базы данных
+     * @param info  текст сообщения лога (не должен превышать параметра maxLengthLog, задающего максимальное количество символов в логе)
+     * @param status статус лога (должен быть из списка допустимых)
+     * @param maxLengthLog максимальная длина сообщения лога
+     * @param numberLog порядкоый номер данного лога
+     * @throws ExceptionDataLog если валидация не пройдена
+     */
     public DataLog(String info,
                     String status,
+                    int numberLog,
                     LocalDateTime timeLog) {
+        this.numberLog = numberLog;
         this.strLogInfo = info;
         this.strStatus = status;
         this.timeLog = timeLog;
