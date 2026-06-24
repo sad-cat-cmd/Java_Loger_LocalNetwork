@@ -80,22 +80,7 @@ public class CollectionStatement implements AutoCloseable {
     // ==================== Statements ====================
     
     /** Statement для создания таблицы процессов */
-    private final Statement createTableProcessesStmt;
-    
-    /** Statement для создания таблицы логов */
-    private final Statement createTableLogsStmt;
-    
-    /** Statement для создания индекса по номеру лога */
-    private final Statement createIndexLogNumberStmt;
-    
-    /** Statement для создания индекса по статусу процесса */
-    private final Statement createIndexProcessesStatusStmt;
-    
-    /** Statement для создания индекса по имени процесса */
-    private final Statement createIndexProcessesNameStmt;
-    
-    /** Statement для создания индекса по статусу лога */
-    private final Statement createIndexLogsStatusStmt;
+    private final Statement statement_init;
     
     /** Список всех ресурсов для закрытия */
     private final List<AutoCloseable> resources = new ArrayList<>();
@@ -110,19 +95,13 @@ public class CollectionStatement implements AutoCloseable {
      * @param connection активное подключение к базе данных
      * @throws RuntimeException если не удалось инициализировать запросы
      */
-    public CollectionStatement(Connection connection) {
+    public CollectionStatement(Connection connection) throws RuntimeException{
         this.connection = connection;
         
         try {
-            // Инициализация Statement для создания таблиц и индексов
-            createTableProcessesStmt = createAndRegisterStatement();
-            createTableLogsStmt = createAndRegisterStatement();
-            createIndexLogNumberStmt = createAndRegisterStatement();
-            createIndexProcessesStatusStmt = createAndRegisterStatement();
-            createIndexProcessesNameStmt = createAndRegisterStatement();
-            createIndexLogsStatusStmt = createAndRegisterStatement();
+            statement_init = connection.createStatement();
+            resources.add(statement_init);
 
-            // Инициализация PreparedStatement для запросов
             insertProcessStmt = createAndRegisterPreparedStatement(
                 CollectionSQLliteRequest.INSERT_NEW_PROCESS
             );
@@ -156,20 +135,6 @@ public class CollectionStatement implements AutoCloseable {
             }
             throw new RuntimeException("Failed to initialize database statements", exc);
         }
-    }
-    
-    // ==================== Приватные методы для создания ресурсов ====================
-    
-    /**
-     * Создает Statement и добавляет его в список ресурсов.
-     * 
-     * @return новый Statement
-     * @throws SQLException если ошибка при создании
-     */
-    private Statement createAndRegisterStatement() throws SQLException {
-        Statement stmt = connection.createStatement();
-        resources.add(stmt);
-        return stmt;
     }
     
     /**
@@ -264,17 +229,8 @@ public class CollectionStatement implements AutoCloseable {
      * 
      * @return Statement для CREATE TABLE IF NOT EXISTS processes
      */
-    public Statement getCreateTableProcesses() {
-        return createTableProcessesStmt;
-    }
-    
-    /**
-     * Возвращает Statement для создания таблицы логов.
-     * 
-     * @return Statement для CREATE TABLE IF NOT EXISTS logs
-     */
-    public Statement getCreateTableLogs() {
-        return createTableLogsStmt;
+    public Statement getStatementInit() {
+        return statement_init;
     }
     
     /**
@@ -299,42 +255,6 @@ public class CollectionStatement implements AutoCloseable {
         PreparedStatement stmt = connection.prepareStatement(sql);
         resources.add(stmt);
         return stmt;
-    }
-    
-    /**
-     * Возвращает Statement для создания индекса по номеру лога.
-     * 
-     * @return Statement для CREATE INDEX idx_logs_number
-     */
-    public Statement getCreateIndexLogNumber() {
-        return createIndexLogNumberStmt;
-    }
-    
-    /**
-     * Возвращает Statement для создания индекса по статусу процесса.
-     * 
-     * @return Statement для CREATE INDEX idx_processes_status
-     */
-    public Statement getCreateIndexProcessesStatus() {
-        return createIndexProcessesStatusStmt;
-    }
-    
-    /**
-     * Возвращает Statement для создания индекса по имени процесса.
-     * 
-     * @return Statement для CREATE INDEX idx_processes_name
-     */
-    public Statement getCreateIndexProcessesName() {
-        return createIndexProcessesNameStmt;
-    }
-    
-    /**
-     * Возвращает Statement для создания индекса по статусу лога.
-     * 
-     * @return Statement для CREATE INDEX idx_logs_status
-     */
-    public Statement getCreateIndexLogsStatus() {
-        return createIndexLogsStatusStmt;
     }
 
     // ==================== Закрытие ресурсов ====================

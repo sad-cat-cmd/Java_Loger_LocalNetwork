@@ -29,9 +29,10 @@ class CollectionStatementTest {
             stmt.execute(CollectionSQLliteRequest.CREATE_TABLE_LOGS);
             
             stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_NUMBER);
-            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_STATUS);
-            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_NAME);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_PROCESS_ID);
             stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_STATUS);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_NAME);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_STATUS);
         }
         
         statements = new CollectionStatement(connection);
@@ -73,14 +74,9 @@ class CollectionStatementTest {
     }
     
     @Test
-    @DisplayName("Should initialize all Statement correctly")
-    void testStatementsInitialization() {
-        assertNotNull(statements.getCreateTableProcesses());
-        assertNotNull(statements.getCreateTableLogs());
-        assertNotNull(statements.getCreateIndexLogNumber());
-        assertNotNull(statements.getCreateIndexProcessesStatus());
-        assertNotNull(statements.getCreateIndexProcessesName());
-        assertNotNull(statements.getCreateIndexLogsStatus());
+    @DisplayName("Should initialize Statement correctly")
+    void testStatementInitialization() {
+        assertNotNull(statements.getStatementInit());
     }
     
     // ==================== Тесты динамических запросов ====================
@@ -143,51 +139,6 @@ class CollectionStatementTest {
         assertTrue(sql.contains("status IN (?, ?, ?, ?, ?)"));
     }
     
-    // ==================== Тесты работы с таблицами ====================
-    
-    @Test
-    @DisplayName("Should create processes table")
-    void testCreateProcessesTable() throws SQLException {
-        Statement stmt = statements.getCreateTableProcesses();
-        stmt.execute(CollectionSQLliteRequest.CREATE_TABLE_PROCESSES);
-        
-        ResultSet rs = connection.getMetaData().getTables(null, null, "processes", null);
-        assertTrue(rs.next());
-    }
-    
-    @Test
-    @DisplayName("Should create logs table")
-    void testCreateLogsTable() throws SQLException {
-        Statement stmt = statements.getCreateTableLogs();
-        stmt.execute(CollectionSQLliteRequest.CREATE_TABLE_LOGS);
-        
-        ResultSet rs = connection.getMetaData().getTables(null, null, "logs", null);
-        assertTrue(rs.next());
-    }
-    
-    @Test
-    @DisplayName("Should create indexes")
-    void testCreateIndexes() throws SQLException {
-        statements.getCreateTableProcesses().execute(CollectionSQLliteRequest.CREATE_TABLE_PROCESSES);
-        statements.getCreateTableLogs().execute(CollectionSQLliteRequest.CREATE_TABLE_LOGS);
-        
-        statements.getCreateIndexLogNumber().execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_NUMBER);
-        statements.getCreateIndexProcessesStatus().execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_STATUS);
-        statements.getCreateIndexProcessesName().execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_NAME);
-        statements.getCreateIndexLogsStatus().execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_STATUS);
-        
-        ResultSet rs = connection.getMetaData().getIndexInfo(null, null, "logs", false, false);
-        boolean hasIndex = false;
-        while (rs.next()) {
-            String indexName = rs.getString("INDEX_NAME");
-            if (indexName != null && indexName.startsWith("idx_")) {
-                hasIndex = true;
-                break;
-            }
-        }
-        assertTrue(hasIndex);
-    }
-    
     // ==================== Тесты операций с БД ====================
     
     @Test
@@ -214,7 +165,7 @@ class CollectionStatementTest {
         assertEquals("proc_123", rs.getString("id"));
         assertEquals("test-service", rs.getString("name"));
         assertEquals("Active", rs.getString("status"));
-        assertEquals(0, rs.getLong("logCount"));  // ← logCount (без подчеркивания)
+        assertEquals(0, rs.getLong("logCount"));
     }
     
     @Test
@@ -280,7 +231,7 @@ class CollectionStatementTest {
         
         assertTrue(rs.next());
         assertEquals("Finished", rs.getString("status"));
-        assertEquals(10, rs.getLong("logCount"));  // ← logCount (без подчеркивания)
+        assertEquals(10, rs.getLong("logCount"));
     }
     
     @Test
@@ -372,7 +323,7 @@ class CollectionStatementTest {
     }
     
     @Test
-    @DisplayName("Should support try-with-resources and close connection")
+    @DisplayName("Should support try-with-resources")
     void testTryWithResources() throws SQLException {
         Connection testConnection = DriverManager.getConnection("jdbc:sqlite::memory:");
         
@@ -380,18 +331,20 @@ class CollectionStatementTest {
         try (Statement stmt = testConnection.createStatement()) {
             stmt.execute(CollectionSQLliteRequest.CREATE_TABLE_PROCESSES);
             stmt.execute(CollectionSQLliteRequest.CREATE_TABLE_LOGS);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_NUMBER);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_PROCESS_ID);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_LOGS_STATUS);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_NAME);
+            stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_STATUS);
         }
         
         try (CollectionStatement stmts = new CollectionStatement(testConnection)) {
             assertNotNull(stmts.getInsertProcess());
             assertNotNull(stmts.getSelectAllProcesses());
         }
-        // CollectionStatement закрыт, но connection НЕ закрыт (мы не закрываем connection в try-with-resources)
-        // Мы закрываем только CollectionStatement, а connection должен закрываться отдельно
+        // CollectionStatement закрыт, connection не закрыт
         assertFalse(testConnection.isClosed());
-        
         testConnection.close();
-        assertTrue(testConnection.isClosed());
     }
     
     @Test
