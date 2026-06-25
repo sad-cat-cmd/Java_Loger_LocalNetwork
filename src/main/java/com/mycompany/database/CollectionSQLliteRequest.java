@@ -117,7 +117,7 @@ public class CollectionSQLliteRequest {
     /**
      * SQL запрос для подсчета количества логов по ID процесса
      */
-    public static final String SELECT_COUNT_LOG_IN_PROCESs =
+    public static final String SELECT_COUNT_LOG_IN_PROCES =
         "SELECT COUNT(*) FROM logs" +
         "WHERE id = ?;";
 

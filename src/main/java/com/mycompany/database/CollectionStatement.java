@@ -83,8 +83,12 @@ public class CollectionStatement implements AutoCloseable {
     /** PreparedStatemnt для обновления количества логов */
     private final PreparedStatement updateProcessLogCount;
 
-    //** PreparedStatent для обновления временени завершения */
+    /** PreparedStatent для обновления временени завершения */
     private final PreparedStatement updateProcessLogFinished;
+
+    /** PreparedStatent для получения количества логов процесса */
+    private final PreparedStatement selectCountLogsInProcess;
+    
     // ==================== Statements ====================
     
     /** Statement для создания таблицы процессов */
@@ -121,6 +125,9 @@ public class CollectionStatement implements AutoCloseable {
             );
             selectActiveProcessesStmt = createAndRegisterPreparedStatement(
                 CollectionSQLliteRequest.SELECT_ALL_PROCESSES_BY_STATUS_ACTIVE
+            );
+            selectCountLogsInProcess = createAndRegisterPreparedStatement(
+                CollectionSQLliteRequest.SELECT_COUNT_LOG_IN_PROCES
             );
             updateProcessStmt = createAndRegisterPreparedStatement(
                 CollectionSQLliteRequest.UPDATE_PROCESS_INFO
@@ -188,6 +195,15 @@ public class CollectionStatement implements AutoCloseable {
     }
     
     /**
+     * Возвращает PreparedStatement для получения количества логов у процесса.
+     * 
+     * @return PreparedStatement для SELECT * FROM processes
+     */
+    public PreparedStatement getSelectCountLogProcess() {
+        return selectCountLogsInProcess;
+    }
+
+    /**
      * Возвращает PreparedStatement для поиска процесса по ID.
      * 
      * @return PreparedStatement для SELECT * FROM processes WHERE id = ?
@@ -228,11 +244,11 @@ public class CollectionStatement implements AutoCloseable {
      * 
      * @return PreparedStatement для UPDATE processes SET status = ?
      */
-    public PreparedStatement getUpdateLogCount(){
+    public PreparedStatement getUpdateProcessLogsCount(){
         return updateProcessLogCount;
     }
 
-    public PreparedStatement getUpdateFinishedBy(){
+    public PreparedStatement getUpdateProcessFinishedBy(){
         return updateProcessLogFinished;
     }
 
