@@ -91,6 +91,37 @@ public class CollectionSQLliteRequest {
         "WHERE id = ?;";
     
     /**
+     * SQL запрос для обновления статуса процесса.
+     */
+    public static final String UPDATE_PROCESS_STATUS =
+        "UPDATE processes " +
+        "SET status = ? " + 
+        "WHERE id = ?;";
+    
+    /**
+     * SQL запрос для обновления количества логов процесса.
+     */
+    public static final String UPDATE_PROCESS_LOG_COUNT =
+        "UPDATE processses " +
+        "SET LOG_COUNT = ? " +
+        "WHERE id = ?;";
+    
+    /**
+     * SQL запрос для обновления даты завершения процесса
+     */    
+    public static final String UPDATE_PROCESS_LOG_FINISHED_BY = 
+        "UPDATE processes " + 
+        "SET finished_by = ? " +
+        "WHERE id = ?;";
+        
+    /**
+     * SQL запрос для подсчета количества логов по ID процесса
+     */
+    public static final String SELECT_COUNT_LOG_IN_PROCESs =
+        "SELECT COUNT(*) FROM logs" +
+        "WHERE id = ?;";
+
+    /**
      * SQL запрос для получения всех процессов.
      */
     public static final String SELECT_ALL_PROCESSES = 
