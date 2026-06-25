@@ -77,6 +77,14 @@ public class CollectionStatement implements AutoCloseable {
     /** PreparedStatement для поиска логов по подстроке */
     private final PreparedStatement selectLogBySubstringStmt;
 
+    /** PreparedStatement для обновления статуса */
+    private final PreparedStatement updateProcessStatus;
+
+    /** PreparedStatemnt для обновления количества логов */
+    private final PreparedStatement updateProcessLogCount;
+
+    //** PreparedStatent для обновления временени завершения */
+    private final PreparedStatement updateProcessLogFinished;
     // ==================== Statements ====================
     
     /** Statement для создания таблицы процессов */
@@ -127,7 +135,16 @@ public class CollectionStatement implements AutoCloseable {
             selectLogBySubstringStmt = createAndRegisterPreparedStatement(
                 CollectionSQLliteRequest.SELECT_LOGS_CONTAINS_SUBSTRING
             );
-
+            updateProcessStatus = createAndRegisterPreparedStatement(
+                CollectionSQLliteRequest.UPDATE_PROCESS_STATUS
+            );
+            updateProcessLogCount = createAndRegisterPreparedStatement(
+                CollectionSQLliteRequest.UPDATE_PROCESS_LOG_COUNT
+            );
+            updateProcessLogFinished = createAndRegisterPreparedStatement(
+                CollectionSQLliteRequest.UPDATE_PROCESS_LOG_FINISHED_BY
+            );
+            
         } catch (SQLException exc) {
             try {
                 closeAll();
@@ -197,6 +214,28 @@ public class CollectionStatement implements AutoCloseable {
         return updateProcessStmt;
     }
     
+    /**
+     * Возвращает PreparedStatement для обновления процесса.
+     * 
+     * @return PreparedStatement для UPDATE processes SET status = ?
+     */
+    public PreparedStatement getUpdateProcessStatus(){
+        return updateProcessStatus;
+    }
+    
+    /**
+     * Возвращает PreparedStatement для обновления процесса.
+     * 
+     * @return PreparedStatement для UPDATE processes SET status = ?
+     */
+    public PreparedStatement getUpdateLogCount(){
+        return updateProcessLogCount;
+    }
+
+    public PreparedStatement getUpdateFinishedBy(){
+        return updateProcessLogFinished;
+    }
+
     /**
      * Возвращает PreparedStatement для вставки нового лога.
      * 
