@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
  * try {
  *     // операции в DBManager
  * } catch (IOException e) {
- *     throw new ExceptionConfig("Failed to read config", "DatabaseManager.DatabaseManager()");
+ *     throw new ExceptionConfig("Failed to read config", "DatabaseManager.DatabaseManager()", "Internal error", 500);
  * }
  * </pre>
  * 
@@ -39,6 +39,12 @@ public class ExceptionDB extends Exception{
     /** Время возникновения ошибки */
     private final LocalDateTime timeErr;
     
+    /** Клиентское сообщение об ошибки */
+    private final String clientMsg;
+
+    /** Клиентский код ошибки */
+    private final int clientCode;
+
     /** Текст ошибки */
     private final String msgErr;
     
@@ -46,9 +52,13 @@ public class ExceptionDB extends Exception{
     private String stackTrace;
 
     public ExceptionDB(String msgErr,
-                       String beginProgramUnit){
+                       String beginProgramUnit,
+                       String clientMsg,
+                       int clientCode){
         this.msgErr = msgErr;
         this.stackTrace = beginProgramUnit;
+        this.clientMsg = clientMsg;
+        this.clientCode = clientCode;
         timeErr = LocalDateTime.now();
     }
 
@@ -93,5 +103,23 @@ public class ExceptionDB extends Exception{
         }
         
         return resultStr.toString();
+    }
+
+    /**
+     * Возвращает сообщение для отправки клиенту.
+     * 
+     * @return сообщение об ошибке для клиента(обычно на русском/английском)
+     */
+    public String getClientMsg() {
+        return clientMsg;
+    }
+
+    /**
+     * Возвращает HTTP код ошибки.
+     * 
+     * @return HTTP статус код (например, 400 для Bad Request)
+     */
+    public int getClientCode() {
+        return clientCode;
     }
 }
