@@ -23,7 +23,7 @@ public class CollectionSQLliteRequest {
         "    status TEXT NOT NULL DEFAULT 'Active'," +
         "    owner TEXT NOT NULL," +
         "    unique_code TEXT NOT NULL," +
-        "    logCount INTEGER DEFAULT 0," + 
+        "    log_count INTEGER DEFAULT 0," + 
         "    created_by DATETIME NOT NULL," +
         "    finished_by DATETIME," +
         "    CHECK (status IN ('Active', 'Finished'))" +
@@ -75,19 +75,23 @@ public class CollectionSQLliteRequest {
     public static final String CREATE_INDEX_LOGS_NUMBER = 
         "CREATE INDEX IF NOT EXISTS idx_logs_number ON logs(number_log);";
     
+    // ==================== Запросы для процессов (INSERT) ====================
+    
     /**
      * SQL запрос для вставки нового процесса.
      */
     public static final String INSERT_NEW_PROCESS = 
-        "INSERT INTO processes(id, name, status, owner, unique_code, logCount, created_by, finished_by) " +
+        "INSERT INTO processes(id, name, status, owner, unique_code, log_count, created_by, finished_by) " +
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+    
+    // ==================== Запросы для процессов (UPDATE) ====================
     
     /**
      * SQL запрос для обновления информации о процессе.
      */
     public static final String UPDATE_PROCESS_INFO = 
         "UPDATE processes " +
-        "SET status = ?, logCount = ?, finished_by = ? " +
+        "SET status = ?, log_count = ?, finished_by = ? " +
         "WHERE id = ?;";
     
     /**
@@ -102,8 +106,8 @@ public class CollectionSQLliteRequest {
      * SQL запрос для обновления количества логов процесса.
      */
     public static final String UPDATE_PROCESS_LOG_COUNT =
-        "UPDATE processses " +
-        "SET LOG_COUNT = ? " +
+        "UPDATE processes " +                           
+        "SET log_count = ? " +                           
         "WHERE id = ?;";
     
     /**
@@ -112,13 +116,6 @@ public class CollectionSQLliteRequest {
     public static final String UPDATE_PROCESS_LOG_FINISHED_BY = 
         "UPDATE processes " + 
         "SET finished_by = ? " +
-        "WHERE id = ?;";
-        
-    /**
-     * SQL запрос для подсчета количества логов по ID процесса
-     */
-    public static final String SELECT_COUNT_LOG_IN_PROCES =
-        "SELECT COUNT(*) FROM logs" +
         "WHERE id = ?;";
 
     /**
@@ -191,4 +188,11 @@ public class CollectionSQLliteRequest {
      */
     public static final String SELECT_LOGS_CONTAINS_SUBSTRING = 
         "SELECT * FROM logs WHERE id_parent_process = ? AND log_msg LIKE ? ORDER BY number_log DESC;";
+    
+    /**
+     * SQL запрос для подсчета количества логов по ID процесса
+     */
+    public static final String SELECT_COUNT_LOG_IN_PROCESS =
+        "SELECT COUNT(*) FROM logs " +
+        "WHERE id_parent_process = ?;"; 
 }
