@@ -173,13 +173,13 @@ public class Process {
     /**
      * Возвращает время окончания работы процесса.
      * 
-     * @return строка с датой и временем окончания, или "process is not finished" если процесс активен
+     * @return строка с датой и временем окончания, или null если процесс активен
      */
     public String getTimeEndWork() {
         if (timeEndWork != null) {
             return timeEndWork.toString();
         } else {
-            return "process is not finished";
+            return null;
         }
     }
     
