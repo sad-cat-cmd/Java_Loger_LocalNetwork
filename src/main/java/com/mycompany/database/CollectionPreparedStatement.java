@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import com.mycompany.models.LogStatus;
 import java.util.List;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 /**
@@ -49,13 +48,16 @@ import java.util.ArrayList;
  * @see CollectionSQLliteRequest
  * @see QueryBuilder
  */
-public class CollectionStatement implements AutoCloseable {
+public class CollectionPreparedStatement implements AutoCloseable {
     
     // ==================== Prepared Statements ====================
     
     /** PreparedStatement для вставки нового процесса */
     private final PreparedStatement insertProcessStmt;
     
+    /** PreparedStatement для выборки логов по индексам */
+    private final PreparedStatement selectLogsByRange;
+
     /** PreparedStatement для получения всех процессов */
     private final PreparedStatement selectAllProcessesStmt;
     
@@ -89,11 +91,6 @@ public class CollectionStatement implements AutoCloseable {
     /** PreparedStatent для получения количества логов процесса */
     private final PreparedStatement selectCountLogsInProcess;
     
-    // ==================== Statements ====================
-    
-    /** Statement для создания таблицы процессов */
-    private final Statement statement_init;
-    
     /** Список всех ресурсов для закрытия */
     private final List<AutoCloseable> resources = new ArrayList<>();
     
@@ -107,15 +104,15 @@ public class CollectionStatement implements AutoCloseable {
      * @param connection активное подключение к базе данных
      * @throws RuntimeException если не удалось инициализировать запросы
      */
-    public CollectionStatement(Connection connection) throws RuntimeException{
+    public CollectionPreparedStatement(Connection connection) throws RuntimeException{
         this.connection = connection;
         
         try {
-            statement_init = connection.createStatement();
-            resources.add(statement_init);
-
             insertProcessStmt = createAndRegisterPreparedStatement(
                 CollectionSQLliteRequest.INSERT_NEW_PROCESS
+            );
+            selectLogsByRange = createAndRegisterPreparedStatement(
+                CollectionSQLliteRequest.SELECT_LOGS_BY_RANGE_NUMBER
             );
             selectAllProcessesStmt = createAndRegisterPreparedStatement(
                 CollectionSQLliteRequest.SELECT_ALL_PROCESSES
@@ -127,7 +124,7 @@ public class CollectionStatement implements AutoCloseable {
                 CollectionSQLliteRequest.SELECT_ALL_PROCESSES_BY_STATUS_ACTIVE
             );
             selectCountLogsInProcess = createAndRegisterPreparedStatement(
-                CollectionSQLliteRequest.SELECT_COUNT_LOG_IN_PROCES
+                CollectionSQLliteRequest.SELECT_COUNT_LOG_IN_PROCESS
             );
             updateProcessStmt = createAndRegisterPreparedStatement(
                 CollectionSQLliteRequest.UPDATE_PROCESS_INFO
@@ -194,6 +191,9 @@ public class CollectionStatement implements AutoCloseable {
         return selectAllProcessesStmt;
     }
     
+    public PreparedStatement getSelectLogsByRange() {
+        return selectLogsByRange;
+    }
     /**
      * Возвращает PreparedStatement для получения количества логов у процесса.
      * 
@@ -277,15 +277,6 @@ public class CollectionStatement implements AutoCloseable {
      */
     public PreparedStatement getSelectLogBySubstring() {
         return selectLogBySubstringStmt;
-    }
-    
-    /**
-     * Возвращает Statement для создания таблицы процессов.
-     * 
-     * @return Statement для CREATE TABLE IF NOT EXISTS processes
-     */
-    public Statement getStatementInit() {
-        return statement_init;
     }
     
     /**

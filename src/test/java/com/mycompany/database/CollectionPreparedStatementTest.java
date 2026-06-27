@@ -1,12 +1,26 @@
 package com.mycompany.database;
 
-import com.mycompany.models.ExceptionLogStatus;
-import com.mycompany.models.LogStatus;
-import org.junit.jupiter.api.*;
-import static org.junit.jupiter.api.Assertions.*;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import com.mycompany.models.ExceptionLogStatus;
+import com.mycompany.models.LogStatus;
 
 /**
  * Тестовый класс для CollectionStatement.
@@ -14,10 +28,10 @@ import java.util.List;
  * @author admin_
  * @version 1.0
  */
-class CollectionStatementTest {
+class CollectionPreparedStatementTest {
     
     private Connection connection;
-    private CollectionStatement statements;
+    private CollectionPreparedStatement statements;
     
     @BeforeEach
     void setUp() throws SQLException {
@@ -35,7 +49,7 @@ class CollectionStatementTest {
             stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_STATUS);
         }
         
-        statements = new CollectionStatement(connection);
+        statements = new CollectionPreparedStatement(connection);
     }
     
     @AfterEach
@@ -71,12 +85,6 @@ class CollectionStatementTest {
         assertNotNull(statements.getInsertLog());
         assertNotNull(statements.getSelectAllLogs());
         assertNotNull(statements.getSelectLogBySubstring());
-    }
-    
-    @Test
-    @DisplayName("Should initialize Statement correctly")
-    void testStatementInitialization() {
-        assertNotNull(statements.getStatementInit());
     }
     
     // ==================== Тесты динамических запросов ====================
@@ -338,7 +346,7 @@ class CollectionStatementTest {
             stmt.execute(CollectionSQLliteRequest.CREATE_INDEX_PROCESSES_STATUS);
         }
         
-        try (CollectionStatement stmts = new CollectionStatement(testConnection)) {
+        try (CollectionPreparedStatement stmts = new CollectionPreparedStatement(testConnection)) {
             assertNotNull(stmts.getInsertProcess());
             assertNotNull(stmts.getSelectAllProcesses());
         }
@@ -356,7 +364,7 @@ class CollectionStatementTest {
             // Игнорируем
         }
         assertThrows(RuntimeException.class, () -> {
-            new CollectionStatement(connection);
+            new CollectionPreparedStatement(connection);
         });
     }
 }
