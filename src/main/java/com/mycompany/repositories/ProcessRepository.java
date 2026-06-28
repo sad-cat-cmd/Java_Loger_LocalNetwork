@@ -38,10 +38,6 @@ import com.mycompany.models.Process;
  *     // Получение только активных процессов
  *     List&lt;Process&gt; activeProcesses = repository.findAllActive();
  *     
- *     // Обновление процесса
- *     found.setStatusFinished();
- *     Process updated = repository.update(found);
- *     
  *     // Завершение процесса
  *     Process finished = repository.finishProcess("proc_123");
  *     
@@ -99,9 +95,8 @@ public interface ProcessRepository {
      * @param process объект процесса для сохранения (не может быть null)
      * @return сохраненный объект процесса (с присвоенным ID)
      * @throws ExceptionDB если ошибка при выполнении SQL запроса
-     * @throws ExceptionFound если процесс с таким именем уже существует
      */
-    Process save(Process process) throws ExceptionDB, ExceptionFound;
+    Process save(Process process) throws ExceptionDB;
     
     /**
      * Находит процесс по уникальному идентификатору.
@@ -133,25 +128,6 @@ public interface ProcessRepository {
      * @throws ExceptionFound если процессы не найдены
      */
     List<Process> findAll() throws ExceptionDB, ExceptionFound;
-    
-    /**
-     * Обновляет информацию о процессе.
-     * 
-     * <p>Позволяет изменять следующие поля процесса:</p>
-     * <ul>
-     *   <li>Статус (Active ↔ Finished)</li>
-     *   <li>Время окончания работы</li>
-     *   <li>Количество логов (автоматически обновляется)</li>
-     * </ul>
-     * 
-     * <p>Поиск процесса для обновления выполняется по ID.</p>
-     * 
-     * @param process объект процесса с обновленными данными (не может быть null)
-     * @return обновленный объект процесса
-     * @throws ExceptionDB если ошибка при выполнении SQL запроса
-     * @throws ExceptionFound если процесс с указанным ID не найден (код 404)
-     */
-    Process update(Process process) throws ExceptionDB, ExceptionFound;
     
     /**
      * Возвращает список только активных процессов.
@@ -186,9 +162,14 @@ public interface ProcessRepository {
      * <p>Используется для остановки работающего процесса.</p>
      * 
      * @param processId уникальный идентификатор процесса
+     * @param uniqueCode уникальный код для доступа к процессу
+     * @param flagSystemCall флаг, который указывается для вызова метода системой логировния
      * @return завершенный процесс (с обновленным статусом и временем)
      * @throws ExceptionDB если ошибка при выполнении SQL запроса
      * @throws ExceptionFound если процесс с указанным ID не найден (код 404)
+     * @throws ExceptionAccess если процесс код
      */
-    Process finishProcess(String processId) throws ExceptionDB, ExceptionFound;
+    Process finishProcess(String processId,
+                          String uniqueCode,
+                          boolean flagSystemCall) throws ExceptionDB, ExceptionFound, ExceptionAccess;
 }
