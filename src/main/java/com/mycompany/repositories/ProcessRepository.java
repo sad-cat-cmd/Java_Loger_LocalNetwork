@@ -17,28 +17,41 @@ import com.mycompany.models.Process;
  *   <li>Поиск процессов по идентификатору</li>
  *   <li>Получение списков процессов (все, активные)</li>
  *   <li>Обновление информации о процессе</li>
+ *   <li>Завершение процесса (установка статуса Finished)</li>
  * </ul>
  * 
  * <h2>Пример использования:</h2>
  * <pre>
  * ProcessRepository repository = new ProcessRepositoryImpl(dbManager);
  * 
- * // Создание и сохранение процесса
- * Process process = new Process("billing-service", "admin@company.com", 100, 50);
- * Process saved = repository.save(process);
- * 
- * // Поиск по ID
- * Process found = repository.findById("proc_123");
- * 
- * // Получение всех процессов
- * List&lt;Process&gt; allProcesses = repository.findAll();
- * 
- * // Получение только активных процессов
- * List&lt;Process&gt; activeProcesses = repository.findAllActive();
- * 
- * // Обновление процесса
- * found.setStatusFinished();
- * Process updated = repository.update(found);
+ * try {
+ *     // Создание и сохранение процесса
+ *     Process process = new Process("billing-service", "admin@company.com", 100, 50);
+ *     Process saved = repository.save(process);
+ *     
+ *     // Поиск по ID
+ *     Process found = repository.findById("proc_123");
+ *     
+ *     // Получение всех процессов
+ *     List&lt;Process&gt; allProcesses = repository.findAll();
+ *     
+ *     // Получение только активных процессов
+ *     List&lt;Process&gt; activeProcesses = repository.findAllActive();
+ *     
+ *     // Обновление процесса
+ *     found.setStatusFinished();
+ *     Process updated = repository.update(found);
+ *     
+ *     // Завершение процесса
+ *     Process finished = repository.finishProcess("proc_123");
+ *     
+ * } catch (ExceptionDB e) {
+ *     // Ошибка базы данных
+ *     System.err.println("Database error: " + e.getMessage());
+ * } catch (ExceptionFound e) {
+ *     // Процесс не найден
+ *     System.err.println("Process not found: " + e.getClientMsg());
+ * }
  * </pre>
  * 
  * <h2>Структура таблицы processes:</h2>
@@ -49,16 +62,24 @@ import com.mycompany.models.Process;
  *     owner TEXT NOT NULL,
  *     status TEXT NOT NULL DEFAULT 'Active',
  *     unique_code TEXT NOT NULL,
- *     time_create DATETIME NOT NULL,
- *     time_end_work DATETIME,
+ *     created_by DATETIME NOT NULL,
+ *     finished_by DATETIME,
  *     log_count INTEGER DEFAULT 0,
  *     CHECK (status IN ('Active', 'Finished'))
  * );
  * </pre>
  * 
+ * <h2>Исключения:</h2>
+ * <ul>
+ *   <li>{@link ExceptionDB} - ошибки на уровне базы данных (SQL, соединение)</li>
+ *   <li>{@link ExceptionFound} - запрашиваемая сущность не найдена</li>
+ * </ul>
+ * 
  * @author admin_
  * @version 1.0
  * @see Process
+ * @see ExceptionDB
+ * @see ExceptionFound
  */
 public interface ProcessRepository {
     
@@ -77,28 +98,22 @@ public interface ProcessRepository {
      * 
      * @param process объект процесса для сохранения (не может быть null)
      * @return сохраненный объект процесса (с присвоенным ID)
-     * @throws если:
-     *         <ul>
-     *           <li>Ошибка при выполнении SQL запроса</li>
-     *           <li>process = null</li>
-     *         </ul>
+     * @throws ExceptionDB если ошибка при выполнении SQL запроса
+     * @throws ExceptionFound если процесс с таким именем уже существует
      */
-    Process save(Process process) throws ExceptionDB;
+    Process save(Process process) throws ExceptionDB, ExceptionFound;
     
     /**
      * Находит процесс по уникальному идентификатору.
      * 
      * <p>Использует первичный ключ для быстрого поиска записи.</p>
      * 
-     * @param id уникальный идентификатор процесса (не может быть null)
-     * @return найденный процесс или null, если процесс не найден
-     * @throws ExceptionDB если:
-     *         <ul>
-     *           <li>Ошибка при выполнении SQL запроса</li>
-     *           <li>id = null</li>
-     *         </ul>
+     * @param processId уникальный идентификатор процесса (не может быть null или пустым)
+     * @return найденный процесс
+     * @throws ExceptionDB если ошибка при выполнении SQL запроса
+     * @throws ExceptionFound если процесс с указанным ID не найден (код 404)
      */
-    Process findById(String processId) throws ExceptionDB;
+    Process findById(String processId) throws ExceptionDB, ExceptionFound;
     
     /**
      * Возвращает список всех зарегистрированных процессов.
@@ -115,8 +130,9 @@ public interface ProcessRepository {
      * 
      * @return список всех процессов (может быть пустым, если процессов нет)
      * @throws ExceptionDB если ошибка при выполнении SQL запроса
+     * @throws ExceptionFound если процессы не найдены
      */
-    List<Process> findAll() throws ExceptionDB;
+    List<Process> findAll() throws ExceptionDB, ExceptionFound;
     
     /**
      * Обновляет информацию о процессе.
@@ -132,14 +148,10 @@ public interface ProcessRepository {
      * 
      * @param process объект процесса с обновленными данными (не может быть null)
      * @return обновленный объект процесса
-     * @throws ExceptionDB если:
-     *         <ul>
-     *           <li>Процесс с указанным ID не найден</li>
-     *           <li>Ошибка при выполнении SQL запроса</li>
-     *           <li>process = null</li>
-     *         </ul>
+     * @throws ExceptionDB если ошибка при выполнении SQL запроса
+     * @throws ExceptionFound если процесс с указанным ID не найден (код 404)
      */
-    Process update(Process process) throws ExceptionDB;
+    Process update(Process process) throws ExceptionDB, ExceptionFound;
     
     /**
      * Возвращает список только активных процессов.
@@ -158,15 +170,25 @@ public interface ProcessRepository {
      * 
      * @return список активных процессов (может быть пустым, если нет активных процессов)
      * @throws ExceptionDB если ошибка при выполнении SQL запроса
+     * @throws ExceptionFound если активные процессы не найдены
      */
-    List<Process> findAllActive() throws ExceptionDB;
+    List<Process> findAllActive() throws ExceptionDB, ExceptionFound;
     
     /**
-     * Завершает процесс
-     * <p>Задает статус "Finished" для процесса</p>
-     * <p>Задает время завершения
-     * @return завершенный процесс
+     * Завершает процесс.
+     * 
+     * <p>Выполняет следующие операции:</p>
+     * <ul>
+     *   <li>Устанавливает статус процесса в {@code Finished}</li>
+     *   <li>Устанавливает время завершения на текущий момент</li>
+     * </ul>
+     * 
+     * <p>Используется для остановки работающего процесса.</p>
+     * 
+     * @param processId уникальный идентификатор процесса
+     * @return завершенный процесс (с обновленным статусом и временем)
      * @throws ExceptionDB если ошибка при выполнении SQL запроса
+     * @throws ExceptionFound если процесс с указанным ID не найден (код 404)
      */
-    Process finishProcess(String processId) throws ExceptionDB;
+    Process finishProcess(String processId) throws ExceptionDB, ExceptionFound;
 }
