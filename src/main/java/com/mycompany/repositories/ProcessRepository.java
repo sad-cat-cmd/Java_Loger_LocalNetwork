@@ -125,9 +125,8 @@ public interface ProcessRepository {
      * 
      * @return список всех процессов (может быть пустым, если процессов нет)
      * @throws ExceptionDB если ошибка при выполнении SQL запроса
-     * @throws ExceptionFound если процессы не найдены
      */
-    List<Process> findAll() throws ExceptionDB, ExceptionFound;
+    List<Process> findAll() throws ExceptionDB;
     
     /**
      * Возвращает список только активных процессов.
@@ -146,9 +145,8 @@ public interface ProcessRepository {
      * 
      * @return список активных процессов (может быть пустым, если нет активных процессов)
      * @throws ExceptionDB если ошибка при выполнении SQL запроса
-     * @throws ExceptionFound если активные процессы не найдены
      */
-    List<Process> findAllActive() throws ExceptionDB, ExceptionFound;
+    List<Process> findAllActive() throws ExceptionDB;
     
     /**
      * Завершает процесс.
