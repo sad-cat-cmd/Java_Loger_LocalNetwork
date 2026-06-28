@@ -1,13 +1,11 @@
 package com.mycompany.repositories;
 
 /**
- * Исключение для ошибок, связанных с отсутствием сущностей в репозиториях.
+ * Исключение для ошибок, связанных с неккоректным кодом доступа к данным
  * 
  * <p>Предназначено для информирования системы о ситуациях, когда:
  * <ul>
- *   <li>Запрашиваемая сущность не найдена в базе данных</li>
- *   <li>Поиск по ID или имени не дал результатов</li>
- *   <li>Операция обновления/удаления не найдена сущность</li>
+ *   <li></li>
  * </ul>
  * </p>
  * 
@@ -15,16 +13,16 @@ package com.mycompany.repositories;
  * <ul>
  *   <li>Содержит HTTP код для ответа клиенту</li>
  *   <li>Содержит сообщение для отправки клиенту</li>
- *   <li>Используется в репозиториях для сигнализации об отсутствии данных</li>
+ *   <li>Используется в репозиториях для сигнализации об отсутсвии доступа</li>
  * </ul>
  * 
  * <h2>Пример использования:</h2>
  * <pre>
  * try {
  *     Process process = dbManager.selectProcessById(id);
- *     if (process == null) {
- *         throw new ExceptionFound(); 
- *     }
+ *      if (!foundProcess.getUniqueCode().equals(uniqueCode)){
+           throw new ExceptionAccess();
+        }
  *     return process;
  * } catch (ExceptionDB e) {
  *     throw new RuntimeException("Database error", e);
@@ -36,8 +34,7 @@ package com.mycompany.repositories;
  * @see ProcessRepository
  * @see DataLogRepository
  */
-public class ExceptionFound extends Exception {
-    
+public class ExceptionAccess extends Exception {
     /** HTTP код для ответа клиенту */
     private final int clientCode;
     
@@ -45,12 +42,12 @@ public class ExceptionFound extends Exception {
     private final String clientMsg;
     
     /**
-     * Создает новое исключение c кодом: 404 и собщением: "Resours not found"
+     * Создает новое исключение c кодом: 401 и собщением: "Invalid secure code"
      */
-    public ExceptionFound() {
+    public ExceptionAccess() {
         super("");
-        this.clientCode = 404;
-        this.clientMsg = "Resours not found";
+        this.clientCode = 401;
+        this.clientMsg = "Invalid secure code";
     }
     
     /**
