@@ -51,15 +51,12 @@ public class ExceptionFound extends Exception {
     private final String clientMsg;
     
     /**
-     * Создает новое исключение с указанным HTTP кодом и сообщением.
-     * 
-     * @param clientCode HTTP код ошибки (например, 404 для Not Found)
-     * @param clientMsg  сообщение для клиента (например, "Process not found")
+     * Создает новое исключение c кодом: 404 и собщением: "Resours not found"
      */
-    public ExceptionFound(int clientCode, String clientMsg) {
-        super(clientMsg);
-        this.clientCode = clientCode;
-        this.clientMsg = clientMsg;
+    public ExceptionFound() {
+        super("");
+        this.clientCode = 404;
+        this.clientMsg = "Resours not found";
     }
     
     /**
