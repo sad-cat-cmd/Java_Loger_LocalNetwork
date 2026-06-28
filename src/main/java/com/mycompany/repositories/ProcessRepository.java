@@ -1,7 +1,9 @@
 package com.mycompany.repositories;
 
-import com.mycompany.models.Process;
 import java.util.List;
+
+import com.mycompany.database.ExceptionDB;
+import com.mycompany.models.Process;
 
 /**
  * Репозиторий для работы с процессами в базе данных.
@@ -75,14 +77,13 @@ public interface ProcessRepository {
      * 
      * @param process объект процесса для сохранения (не может быть null)
      * @return сохраненный объект процесса (с присвоенным ID)
-     * @throws RuntimeException если:
+     * @throws если:
      *         <ul>
-     *           <li>Процесс с таким именем уже существует</li>
      *           <li>Ошибка при выполнении SQL запроса</li>
      *           <li>process = null</li>
      *         </ul>
      */
-    Process save(Process process);
+    Process save(Process process) throws ExceptionDB;
     
     /**
      * Находит процесс по уникальному идентификатору.
@@ -91,13 +92,13 @@ public interface ProcessRepository {
      * 
      * @param id уникальный идентификатор процесса (не может быть null)
      * @return найденный процесс или null, если процесс не найден
-     * @throws RuntimeException если:
+     * @throws ExceptionDB если:
      *         <ul>
      *           <li>Ошибка при выполнении SQL запроса</li>
      *           <li>id = null</li>
      *         </ul>
      */
-    Process findById(String id);
+    Process findById(String processId) throws ExceptionDB;
     
     /**
      * Возвращает список всех зарегистрированных процессов.
@@ -113,9 +114,9 @@ public interface ProcessRepository {
      * </ul>
      * 
      * @return список всех процессов (может быть пустым, если процессов нет)
-     * @throws RuntimeException если ошибка при выполнении SQL запроса
+     * @throws ExceptionDB если ошибка при выполнении SQL запроса
      */
-    List<Process> findAll();
+    List<Process> findAll() throws ExceptionDB;
     
     /**
      * Обновляет информацию о процессе.
@@ -131,14 +132,14 @@ public interface ProcessRepository {
      * 
      * @param process объект процесса с обновленными данными (не может быть null)
      * @return обновленный объект процесса
-     * @throws RuntimeException если:
+     * @throws ExceptionDB если:
      *         <ul>
      *           <li>Процесс с указанным ID не найден</li>
      *           <li>Ошибка при выполнении SQL запроса</li>
      *           <li>process = null</li>
      *         </ul>
      */
-    Process update(Process process);
+    Process update(Process process) throws ExceptionDB;
     
     /**
      * Возвращает список только активных процессов.
@@ -156,7 +157,16 @@ public interface ProcessRepository {
      * </ul>
      * 
      * @return список активных процессов (может быть пустым, если нет активных процессов)
-     * @throws RuntimeException если ошибка при выполнении SQL запроса
+     * @throws ExceptionDB если ошибка при выполнении SQL запроса
      */
-    List<Process> findAllActive();
+    List<Process> findAllActive() throws ExceptionDB;
+    
+    /**
+     * Завершает процесс
+     * <p>Задает статус "Finished" для процесса</p>
+     * <p>Задает время завершения
+     * @return завершенный процесс
+     * @throws ExceptionDB если ошибка при выполнении SQL запроса
+     */
+    Process finishProcess(String processId) throws ExceptionDB;
 }
