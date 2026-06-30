@@ -452,43 +452,113 @@ public class DatabaseManager {
         }
     }
     
-    // /**
-    //  * Получает логи процесса в диапазоне номеров.
-    //  * 
-    //  * @param processID идентификатор процесса
-    //  * @param indexStart начальный номер (включительно)
-    //  * @param indexEnd конечный номер (включительно)
-    //  * @return список логов в указанном диапазоне
-    //  * @throws ExceptionDB если ошибка при чтении
-    //  */
-    // public List<DataLog> selectLogsByRange(String processID, int indexStart, int indexEnd) throws ExceptionDB {
-    //     List<DataLog> logs = new ArrayList<>();
-    //     PreparedStatement pstate = collectionStatement.getSele;
-    //     try {
-    //         pstate.setString(1, processID);
-    //         pstate.setInt(2, indexStart);
-    //         pstate.setInt(3, indexEnd);
-    //         ResultSet rs = pstate.executeQuery();
-    //         while (rs.next()) {
-    //             logs.add(mapRowToDataLog(rs));
-    //         }
-    //         rs.close();
-    //         return logs;
-    //     } catch (SQLException excSQL) {
-    //         throw new ExceptionDB(
-    //             "SQL Error: " + excSQL.getMessage() + "\nSQLite state: " + excSQL.getSQLState(),
-    //             "DatabaseManager.selectLogsByRange()",
-    //             "Failed to get logs by range",
-    //             500
-    //         );
-    //     } finally {
-    //         try {
-    //             if (pstate != null) pstate.close();
-    //         } catch (SQLException e) {
-    //             // ignore
-    //         }
-    //     }
-    // }
+    /**
+ * Получает логи процесса в указанном диапазоне номеров.
+ * 
+ * <p>Возвращает логи, порядковые номера которых находятся в диапазоне
+ * от {@code indexStart} до {@code indexEnd} включительно.
+ * Логи сортируются по убыванию номера (от новых к старым).</p>
+ * 
+ * <p>Метод выполняет валидацию входных параметров и выбрасывает
+ * соответствующие исключения при некорректных значениях.</p>
+ * 
+ * <h3>Примеры использования:</h3>
+ * <pre>
+ * // Получить первые 100 логов (с 0 по 99)
+ * List&lt;DataLog&gt; logs = dbManager.selectLogsByRange("proc_123", 0, 99);
+ * 
+ * // Получить логи с 100 по 199 (вторая страница)
+ * List&lt;DataLog&gt; logs = dbManager.selectLogsByRange("proc_123", 100, 199);
+ * 
+ * // Получить все логи с 1000 до конца
+ * List&lt;DataLog&gt; logs = dbManager.selectLogsByRange("proc_123", 1000, Integer.MAX_VALUE);
+ * </pre>
+ * 
+ * <h3>Валидация параметров:</h3>
+ * <ul>
+ *   <li>processID не может быть null или пустым</li>
+ *   <li>indexStart и indexEnd не могут быть отрицательными</li>
+ *   <li>indexStart не может быть больше indexEnd</li>
+ * </ul>
+ * 
+ * <h3>Результат:</h3>
+ * <ul>
+ *   <li>Если логи найдены - возвращается список</li>
+ *   <li>Если логи не найдены - возвращается пустой список</li>
+ *   <li>При ошибке - выбрасывается ExceptionDB</li>
+ * </ul>
+ * 
+ * @param processID уникальный идентификатор процесса (не может быть null или пустым)
+ * @param indexStart начальный номер лога (включительно, 0-based, не может быть отрицательным)
+ * @param indexEnd конечный номер лога (включительно, не может быть меньше indexStart)
+ * @return список логов в указанном диапазоне (может быть пустым, но не null)
+ * @throws ExceptionDB если:
+ *         <ul>
+ *           <li>processID = null или пустой (код 400)</li>
+ *           <li>indexStart или indexEnd отрицательные (код 400)</li>
+ *           <li>indexStart > indexEnd (код 400)</li>
+ *           <li>Ошибка при выполнении SQL запроса (код 500)</li>
+ *         </ul>
+ * 
+ * @see #mapRowToDataLog(ResultSet)
+ * @see CollectionPreparedStatement#getSelectLogsByRange()
+ */
+public List<DataLog> selectLogsByRange(String processID, int indexStart, int indexEnd) throws ExceptionDB {
+    // Валидация параметров
+    if (processID == null || processID.trim().isEmpty()) {
+        throw new ExceptionDB(
+            "Process ID cannot be null or empty",
+            "DatabaseManager.selectLogsByRange()",
+            "Invalid process ID",
+            400
+        );
+    }
+    
+    if (indexStart < 0 || indexEnd < 0) {
+        throw new ExceptionDB(
+            "Range indices cannot be negative: start=" + indexStart + ", end=" + indexEnd,
+            "DatabaseManager.selectLogsByRange()",
+            "Invalid range parameters",
+            400
+        );
+    }
+    
+    if (indexStart > indexEnd) {
+        throw new ExceptionDB(
+            "Start index cannot be greater than end index: start=" + indexStart + ", end=" + indexEnd,
+            "DatabaseManager.selectLogsByRange()",
+            "Invalid range parameters",
+            400
+        );
+    }
+    
+    List<DataLog> logs = new ArrayList<>();
+    PreparedStatement pstate = collectionStatement.getSelectLogsByRange();
+    try {
+        pstate.setString(1, processID);
+        pstate.setInt(2, indexStart);
+        pstate.setInt(3, indexEnd);
+        ResultSet rs = pstate.executeQuery();
+        while (rs.next()) {
+            logs.add(mapRowToDataLog(rs));
+        }
+        rs.close();
+        return logs;
+    } catch (SQLException excSQL) {
+        throw new ExceptionDB(
+            "SQL Error: " + excSQL.getMessage() + "\nSQLite state: " + excSQL.getSQLState(),
+            "DatabaseManager.selectLogsByRange()",
+            "Failed to get logs by range",
+            500
+        );
+    } finally {
+        try {
+            if (pstate != null) pstate.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+    }
+}
     
     /**
      * Получает логи по списку статусов.

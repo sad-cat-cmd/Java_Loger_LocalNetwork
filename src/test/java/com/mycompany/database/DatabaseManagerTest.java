@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -378,5 +379,164 @@ class DatabaseManagerTest {
         assertEquals("Finished", updated.getStatus());
         assertNotNull(updated.getTimeEndWork());
         assertEquals(3, updated.getLogCount());
+    }
+    @Test
+    @DisplayName("Should return logs in correct range")
+    void testSelectLogsByRangeSuccess() throws ExceptionDB {
+        // Arrange
+        Process process = new Process("proc_range", "range-service", "admin@test.com", "Active", 
+                                      "code_123", LocalDateTime.now(), null, 0);
+        dbManager.insertProcess(process);
+        
+        LocalDateTime now = LocalDateTime.now();
+        for (int i = 1; i <= 10; i++) {
+            dbManager.insertLog("proc_range", new DataLog("Log #" + i, "INFO", i, now));
+        }
+        
+        // Act
+        List<DataLog> logs = dbManager.selectLogsByRange("proc_range", 3, 7);
+        
+        // Assert
+        assertNotNull(logs);
+        assertEquals(5, logs.size());
+        // Проверяем, что все логи в диапазоне (в DESC порядке)
+        for (DataLog log : logs) {
+            assertTrue(log.getNumberLog() >= 3 && log.getNumberLog() <= 7);
+        }
+    }
+    
+    @Test
+    @DisplayName("Should return empty list when range has no logs")
+    void testSelectLogsByRangeNoLogs() throws ExceptionDB {
+        // Arrange
+        Process process = new Process("proc_empty_range", "empty-service", "admin@test.com", "Active", 
+                                      "code_123", LocalDateTime.now(), null, 0);
+        dbManager.insertProcess(process);
+        
+        LocalDateTime now = LocalDateTime.now();
+        dbManager.insertLog("proc_empty_range", new DataLog("Log #1", "INFO", 1, now));
+        dbManager.insertLog("proc_empty_range", new DataLog("Log #2", "INFO", 2, now));
+        
+        // Act
+        List<DataLog> logs = dbManager.selectLogsByRange("proc_empty_range", 10, 20);
+        
+        // Assert
+        assertNotNull(logs);
+        assertEquals(0, logs.size());
+    }
+    
+    @Test
+    @DisplayName("Should return logs in descending order")
+    void testSelectLogsByRangeDescendingOrder() throws ExceptionDB {
+        // Arrange
+        Process process = new Process("proc_order", "order-service", "admin@test.com", "Active", 
+                                      "code_123", LocalDateTime.now(), null, 0);
+        dbManager.insertProcess(process);
+        
+        LocalDateTime now = LocalDateTime.now();
+        for (int i = 1; i <= 5; i++) {
+            dbManager.insertLog("proc_order", new DataLog("Log #" + i, "INFO", i, now));
+        }
+        
+        // Act
+        List<DataLog> logs = dbManager.selectLogsByRange("proc_order", 1, 5);
+        
+        // Assert
+        assertNotNull(logs);
+        assertEquals(5, logs.size());
+        // Проверяем DESC порядок (от большего к меньшему)
+        for (int i = 0; i < logs.size() - 1; i++) {
+            assertTrue(logs.get(i).getNumberLog() > logs.get(i + 1).getNumberLog());
+        }
+    }
+    
+    @Test
+    @DisplayName("Should throw ExceptionDB when processID is null")
+    void testSelectLogsByRangeNullProcessId() {
+        ExceptionDB exception = assertThrows(ExceptionDB.class, () -> {
+            dbManager.selectLogsByRange(null, 1, 10);
+        });
+        
+        assertTrue(exception.getCombinedLogMsg().contains("Process ID cannot be null or empty"));
+    }
+    
+    @Test
+    @DisplayName("Should throw ExceptionDB when processID is empty")
+    void testSelectLogsByRangeEmptyProcessId() {
+        ExceptionDB exception = assertThrows(ExceptionDB.class, () -> {
+            dbManager.selectLogsByRange("", 1, 10);
+        });
+        
+        assertTrue(exception.getCombinedLogMsg().contains("Process ID cannot be null or empty"));
+    }
+    
+    @Test
+    @DisplayName("Should throw ExceptionDB when indexStart is negative")
+    void testSelectLogsByRangeNegativeStart() {
+        ExceptionDB exception = assertThrows(ExceptionDB.class, () -> {
+            dbManager.selectLogsByRange("proc_001", -1, 10);
+        });
+        
+        assertTrue(exception.getCombinedLogMsg().contains("Range indices cannot be negative"));
+    }
+    
+    @Test
+    @DisplayName("Should throw ExceptionDB when indexEnd is negative")
+    void testSelectLogsByRangeNegativeEnd() {
+        ExceptionDB exception = assertThrows(ExceptionDB.class, () -> {
+            dbManager.selectLogsByRange("proc_001", 1, -5);
+        });
+        
+        assertTrue(exception.getCombinedLogMsg().contains("Range indices cannot be negative"));
+    }
+    
+    @Test
+    @DisplayName("Should throw ExceptionDB when start > end")
+    void testSelectLogsByRangeStartGreaterThanEnd() {
+        ExceptionDB exception = assertThrows(ExceptionDB.class, () -> {
+            dbManager.selectLogsByRange("proc_001", 10, 1);
+        });
+        
+        assertTrue(exception.getCombinedLogMsg().contains("Start index cannot be greater than end index"));
+    }
+    
+    @Test
+    @DisplayName("Should handle range with start = 0 and end = 0")
+    void testSelectLogsByRangeZeroToZero() throws ExceptionDB {
+        // Arrange
+        Process process = new Process("proc_zero", "zero-service", "admin@test.com", "Active", 
+                                      "code_123", LocalDateTime.now(), null, 0);
+        dbManager.insertProcess(process);
+        
+        LocalDateTime now = LocalDateTime.now();
+        dbManager.insertLog("proc_zero", new DataLog("Log #1", "INFO", 1, now));
+        
+        // Act
+        List<DataLog> logs = dbManager.selectLogsByRange("proc_zero", 0, 0);
+        
+        // Assert
+        assertNotNull(logs);
+        assertEquals(0, logs.size()); // Нет лога с номером 0
+    }
+    
+    @Test
+    @DisplayName("Should handle range that exceeds existing logs")
+    void testSelectLogsByRangeExceedsLogs() throws ExceptionDB {
+        // Arrange
+        Process process = new Process("proc_exceed", "exceed-service", "admin@test.com", "Active", 
+                                      "code_123", LocalDateTime.now(), null, 0);
+        dbManager.insertProcess(process);
+        
+        LocalDateTime now = LocalDateTime.now();
+        for (int i = 1; i <= 5; i++) {
+            dbManager.insertLog("proc_exceed", new DataLog("Log #" + i, "INFO", i, now));
+        }
+        
+        // Act
+        List<DataLog> logs = dbManager.selectLogsByRange("proc_exceed", 1, 100);
+        
+        // Assert
+        assertNotNull(logs);
+        assertEquals(5, logs.size()); // Только существующие логи
     }
 }
