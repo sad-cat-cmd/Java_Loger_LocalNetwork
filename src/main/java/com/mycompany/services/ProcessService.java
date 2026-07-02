@@ -2,96 +2,63 @@ package com.mycompany.services;
 
 import java.util.List;
 
+import com.mycompany.database.ExceptionDB;
 import com.mycompany.models.Process;
+import com.mycompany.repositories.ExceptionAccess;
+import com.mycompany.repositories.ExceptionFound;
 
 /**
- * Сервис для управления процессами логирования.
- * 
- * <p>Предоставляет бизнес-логику для операций с процессами:
- * <ul>
- *   <li>Регистрация новых процессов</li>
- *   <li>Поиск и фильтрация процессов</li>
- *   <li>Редактирование информации о процессах</li>
- * </ul>
- * </p>
- * 
- * <h2>Пример использования:</h2>
- * <pre>
- * try {
- *     ProcessService processService = new ProcessServiceImpl(repository, maxNameLength, maxOwnerLength);
- *     
- *     // Регистрация нового процесса
- *     Process newProcess = new Process("billing-service", "admin@company.com", 100, 50);
- *     Process savedProcess = processService.add(newProcess);
- *     
- *     // Поиск процесса по ID
- *     Process found = processService.search("proc_123");
- *     
- *     // Получение всех активных процессов
- *     List&lt;Process&gt; activeProcesses = processService.getAllActive();
- *     
- *     // Редактирование процесса
- *     savedProcess.setStatusFinished();
- *     Process updated = processService.editProcess(savedProcess);
- * } catch (ExceptionService e) {
- *     e.addProgramUnitInTheStackTrace("MyClass.myMethod()");
- *     System.err.println(e.getCombinedLogMsg());
- * }
- * </pre>
- * 
- * @author admin_
- * @version 1.0
- * @see Process
- * @see ExceptionService
+ * Бизнес-логика управления процессами.
  */
 public interface ProcessService {
-    
+
     /**
-     * Регистрирует новый процесс в системе.
-     * 
-     * <p>Выполняет валидацию имени и владельца процесса.</p>
-     * 
-     * @param process объект процесса для регистрации
-     * @return сохраненный объект процесса (с присвоенным ID)
-     * @throws ExceptionService если валидация не пройдена или произошла ошибка БД
+     * Регистрирует новый процесс.
+     *
+     * @param process процесс для регистрации
+     * @return сохранённый процесс с присвоенным ID
+     * @throws ExceptionDB ошибка БД
      */
-    Process add(Process process) throws ExceptionService;
-    
+    Process add(Process process) throws ExceptionDB;
+
     /**
-     * Возвращает список всех зарегистрированных процессов.
-     * 
-     * @return список всех процессов (включая завершенные)
-     * @throws ExceptionService если произошла ошибка при чтении из БД
+     * Возвращает все процессы (включая завершённые).
+     *
+     * @return список всех процессов
+     * @throws ExceptionDB ошибка БД
      */
-    List<Process> getAll() throws ExceptionService;
-    
+    List<Process> getAll() throws ExceptionDB;
+
     /**
-     * Возвращает список только активных процессов.
-     * 
-     * <p>Активными считаются процессы со статусом {@code Active}.</p>
-     * 
+     * Возвращает только активные процессы (статус Active).
+     *
      * @return список активных процессов
-     * @throws ExceptionService если произошла ошибка при чтении из БД
+     * @throws ExceptionDB ошибка БД
      */
-    List<Process> getAllActive() throws ExceptionService;
-    
+    List<Process> getAllActive() throws ExceptionDB;
+
     /**
-     * Выполняет поиск процесса по уникальному идентификатору.
-     * 
+     * Поиск процесса по ID.
+     *
      * @param id уникальный идентификатор процесса
      * @return найденный процесс
-     * @throws ExceptionService если процесс не найден или произошла ошибка БД
+     * @throws ExceptionDB     ошибка БД
+     * @throws ExceptionFound  процесс не найден
      */
-    Process search(String id) throws ExceptionService;
-    
+    Process search(String id) throws ExceptionDB, ExceptionFound;
+
     /**
-     * Обновляет информацию о процессе.
-     * 
-     * <p>Позволяет изменять статус процесса и другие поля.</p>
-     * 
-     * @param newProcess объект процесса с обновленными данными
-     * @return обновленный объект процесса
-     * @throws ExceptionService если процесс не найден или произошла ошибка БД
+     * Завершает процесс по ID с проверкой secureCode и флагом системного вызова.
+     *
+     * @param id            идентификатор процесса
+     * @param secureCode    код подтверждения
+     * @param flagSystemCall флаг системного вызова
+     * @return завершённый процесс
+     * @throws ExceptionDB     ошибка БД
+     * @throws ExceptionFound  процесс не найден
+     * @throws ExceptionAccess недостаточно прав
      */
-    Process editProcess(Process newProcess) throws ExceptionService;
+    Process finish(String id,
+                   String secureCode,
+                   boolean flagSystemCall) throws ExceptionDB, ExceptionFound, ExceptionAccess;
 }
